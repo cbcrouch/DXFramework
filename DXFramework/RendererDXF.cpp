@@ -87,20 +87,20 @@ namespace DXF {
 			if (SUCCEEDED(hr)) {
 #ifdef _DEBUG
 				switch (driverTypes[driverTypeIndex]) {
-				case D3D_DRIVER_TYPE_HARDWARE: OutputDebugString(TEXT("created hardware accelerated video adapater\n")); break;
-				case D3D_DRIVER_TYPE_WARP: OutputDebugString(TEXT("created software (WARP) video adapater\n")); break;
-				case D3D_DRIVER_TYPE_REFERENCE: OutputDebugString(TEXT("created debug reference video adapter\n")); break;
-				default: assert(TRUE); break; // should never get here
+					case D3D_DRIVER_TYPE_HARDWARE: OutputDebugString(TEXT("created hardware accelerated video adapater\n")); break;
+					case D3D_DRIVER_TYPE_WARP: OutputDebugString(TEXT("created software (WARP) video adapater\n")); break;
+					case D3D_DRIVER_TYPE_REFERENCE: OutputDebugString(TEXT("created debug reference video adapter\n")); break;
+					default: assert(FALSE); break; // should never get here
 				}
 				switch (pRenderer->pDevice->GetFeatureLevel()) {
-				case D3D_FEATURE_LEVEL_11_1:
-					OutputDebugString(TEXT("video adapter max feature level DirectX 11.1\n"));
-					checkDirectX11_2(pRenderer->pDevice);
-					break;
-				case D3D_FEATURE_LEVEL_11_0: OutputDebugString(TEXT("video adapter max feature level DirectX 11.0\n")); break;
+					case D3D_FEATURE_LEVEL_11_1: {
+						OutputDebugString(TEXT("video adapter max feature level DirectX 11.1\n"));
+						checkDirectX11_2(pRenderer->pDevice);
+					} break;
+					case D3D_FEATURE_LEVEL_11_0: OutputDebugString(TEXT("video adapter max feature level DirectX 11.0\n")); break;
 					//case D3D_FEATURE_LEVEL_10_1: OutputDebugString(TEXT("video adapter max feature level DirectX 10.1\n")); break;
 					//case D3D_FEATURE_LEVEL_10_0: OutputDebugString(TEXT("video adapter max feature level DirectX 10.0\n")); break;
-				default: assert(TRUE); break; // should never get here
+					default: assert(FALSE); break; // should never get here
 				}
 #endif
 				// created a valid driver, can break out of loop
@@ -111,11 +111,11 @@ namespace DXF {
 		// create a render target view
 		ID3D11Texture2D *pBackBuffer = NULL;
 		hr = pRenderer->pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID *)&pBackBuffer);
-		CHECK_HRESULT(hr);
+		DXF_CHECK_HRESULT(hr);
 
 		hr = pRenderer->pDevice->CreateRenderTargetView(pBackBuffer, NULL, &(pRenderer->pRenderTargetView));
 		pBackBuffer->Release();
-		CHECK_HRESULT(hr);
+		DXF_CHECK_HRESULT(hr);
 
 		// create depth stencil view
 		ID3D11Texture2D *pDepthStencilBuffer = NULL;
@@ -133,7 +133,7 @@ namespace DXF {
 		descDepth.CPUAccessFlags = 0;
 		descDepth.MiscFlags = 0;
 		hr = pRenderer->pDevice->CreateTexture2D(&descDepth, NULL, &pDepthStencilBuffer);
-		CHECK_HRESULT(hr);
+		DXF_CHECK_HRESULT(hr);
 
 		D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
 		ZeroMemory(&descDSV, sizeof(descDSV));
@@ -142,7 +142,7 @@ namespace DXF {
 		descDSV.Texture2D.MipSlice = 0;
 		hr = pRenderer->pDevice->CreateDepthStencilView(pDepthStencilBuffer, &descDSV, &(pRenderer->pDepthStencilView));
 		pDepthStencilBuffer->Release();
-		CHECK_HRESULT(hr);
+		DXF_CHECK_HRESULT(hr);
 
 		// set render target
 		pRenderer->pImmediateContext->OMSetRenderTargets(1, &(pRenderer->pRenderTargetView), pRenderer->pDepthStencilView);
@@ -195,19 +195,18 @@ namespace DXF {
 
 		switch (tiledResourcesTier)
 		{
-		case D3D11_TILED_RESOURCES_NOT_SUPPORTED:
-			//OutputDebugString(TEXT("video adapter does NOT support DirectX 11.2 tiled resources\n"));
-			break;
-		case D3D11_TILED_RESOURCES_TIER_1:
-			OutputDebugString(TEXT("video adapter supports DirectX 11.2 tier 1 tiled resources\n"));
-			break;
-		case D3D11_TILED_RESOURCES_TIER_2:
-			OutputDebugString(TEXT("video adapter supports DirectX 11.2 tier 2 tiled resources\n"));
-			break;
-		default:
-			// should never get here
-			assert(FALSE);
-			break;
+			case D3D11_TILED_RESOURCES_NOT_SUPPORTED:
+				OutputDebugString(TEXT("video adapter does NOT support DirectX 11.2 tiled resources\n"));
+				break;
+			case D3D11_TILED_RESOURCES_TIER_1:
+				OutputDebugString(TEXT("video adapter supports DirectX 11.2 tier 1 tiled resources\n"));
+				break;
+			case D3D11_TILED_RESOURCES_TIER_2:
+				OutputDebugString(TEXT("video adapter supports DirectX 11.2 tier 2 tiled resources\n"));
+				break;
+			default:
+				assert(FALSE); // should never get here
+				break;
 		}
 	}
 };

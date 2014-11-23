@@ -28,8 +28,6 @@ namespace DXF {
 		HWND parentHandle;
 		WNDCLASSEX winClass;
 		HMENU menuHandle;
-		DWORD dwExStyle;
-		DWORD dwStyle;
 
 		TCHAR title[MAX_STRING];
 		TCHAR className[MAX_STRING];

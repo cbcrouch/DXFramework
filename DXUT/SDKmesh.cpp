@@ -23,6 +23,8 @@
 #include <stdio.h> // for sprintf_s
 #include <new> // for nothrow
 
+#pragma comment(lib, "dxguid.lib") // to link release builds
+
 #define MAXSTRLENGTH MAX_PATH
 
 BOOL Char2Wchar(TCHAR* pDest, char* pSrc, int nDestStrLen)

@@ -89,8 +89,8 @@ unsigned __stdcall renderThread(void *pArgs)
 
 
 	float t = 0.0f;
-	DWORD dwTimeStart = 0;
-	DWORD dwTimeCur = 0;
+	ULONGLONG dwTimeStart = 0;
+	ULONGLONG dwTimeCur = 0;
 
 	while(running) {
 
@@ -104,7 +104,7 @@ unsigned __stdcall renderThread(void *pArgs)
 			t += (float)XM_PI * 0.0125f;
 		}
 		else {
-			dwTimeCur = GetTickCount();
+			dwTimeCur = GetTickCount64();
 			if (dwTimeStart == 0) {
 				dwTimeStart = dwTimeCur;
 			}
@@ -113,10 +113,6 @@ unsigned __stdcall renderThread(void *pArgs)
 
 		XMMATRIX timedRotation = XMMatrixRotationY(t);
 
-
-		//
-		// TODO: use Begin, End, and Dispatch functions of ID3D11DeviceContext in order to batch draw calls
-		//
 
 		ClearView(pRenderer);
 
@@ -213,7 +209,9 @@ unsigned __stdcall renderThread(void *pArgs)
 	// TODO: lookup how to properly clean up the event we're waiting on
 	//
 	if (hWaitObject != NULL) {
-		UnregisterWait(hWaitObject);
+		if (UnregisterWait(hWaitObject) == FALSE) {
+			DXF_ERROR_BOX();
+		}
 	}
 
 	//CloseHandle(hWaitObject);
@@ -228,12 +226,12 @@ unsigned __stdcall renderThread(void *pArgs)
 int APIENTRY wWinMain (
 	_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
-	_In_ LPTSTR lpwCmdLine,
+	_In_ LPTSTR lpCmdLine,
 	_In_ int nCmdShow
 )
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
-	UNREFERENCED_PARAMETER(lpwCmdLine);
+	UNREFERENCED_PARAMETER(lpCmdLine);
 	UNREFERENCED_PARAMETER(nCmdShow);
 
 	HRESULT hr;
@@ -247,46 +245,53 @@ int APIENTRY wWinMain (
 	windowSize.cx = 1280;
 	windowSize.cy = 720;
 
+
+
+	//
 	// TODO: adjust pacing algorithm to use min supported timer resolution
-	MMRESULT mmr; // for timeGetDevCaps
-	MMRESULT tr = TIMERR_NOCANDO;  // for timeBeginPeriod
+	//
 	TIMECAPS tc;
-	mmr = timeGetDevCaps(&tc, sizeof(TIMECAPS));
+	ZeroMemory(&tc, sizeof(TIMECAPS));
+	MMRESULT tr = TIMERR_NOCANDO;
+	MMRESULT mmr = timeGetDevCaps(&tc, sizeof(TIMECAPS));
 	if (mmr != MMSYSERR_NOERROR) {
-		DXF::ERROR_BOX();
+		//
 		// TODO: if failed to get resolution of timer device, attempt to use some default pacing
+		//
 		tr = timeBeginPeriod(tc.wPeriodMin);
 		if (tr == TIMERR_NOCANDO) {
 			// failed timeBeginPeriod
-			DXF::ERROR_BOX();
+			DXF_ERROR_BOX();
 		}
 	}
 
+
+
 	// init and create the Win32 window
 	hr = DXF::InitWindowW32(&dxWin, hInstance, TEXT("DirectX Framework"), windowSize, NULL);
-	CHECK_HRESULT(hr);
+	DXF_CHECK_HRESULT(hr);
 
 	hr = DXF::CreateWindowW32(&dxWin);
-	CHECK_HRESULT(hr);
+	DXF_CHECK_HRESULT(hr);
 
 	// create the Direct3D device
 	hr = InitRenderer(&dxRenderer, dxWin.handle);
-	CHECK_HRESULT(hr);
+	DXF_CHECK_HRESULT(hr);
 
 
 	// NOTE: for structs that contain pointers, ZeroMemory to init all to NULL
 
 	ZeroMemory(&hlslProgram, sizeof(DXF::ProgramDX_t));
 	hr = InitProgram(&hlslProgram, TEXT("Simple.fx"), &dxRenderer);
-	CHECK_HRESULT(hr);
+	DXF_CHECK_HRESULT(hr);
 
 	ZeroMemory(&hlslConstants, sizeof(DXF::ConstantsDX_t));
 	hr = InitConstBuffers(&hlslConstants, &dxRenderer);
-	CHECK_HRESULT(hr);
+	DXF_CHECK_HRESULT(hr);
 
 	ZeroMemory(&hlslSampler, sizeof(DXF::SamplerDX_t));
 	hr = InitSampler(&hlslSampler, &dxRenderer);
-	CHECK_HRESULT(hr);
+	DXF_CHECK_HRESULT(hr);
 
 
 
@@ -299,8 +304,14 @@ int APIENTRY wWinMain (
 	// C:\dev\Media\Microsoft\Teapot\Teapot.sdkmesh
 	// C:\dev\Media\Microsoft\misc\reflectsphere.sdkmesh
 
+
 	// NOTE: create mesh function in this version of DXUT does not appear to support creation of adjacent indices
 	hr = g_mesh11.Create(dxRenderer.pDevice, TEXT("..\\Resources\\tiny.sdkmesh"));
+
+	//
+	// TODO: scale down g_mesh11 using a DXF::CalcBoundingBox like function to fit it within a unit cube
+	//
+
 
 	//
 	// TODO: teapot doesn't appear to have a texture, but does have a material which should be used to render it
@@ -309,7 +320,7 @@ int APIENTRY wWinMain (
 
 	//hr = g_mesh11.Create(dxRenderer.pDevice, TEXT("C:\\dev\\Media\\Microsoft\\misc\\reflectsphere.sdkmesh"));
 
-	CHECK_HRESULT(hr);
+	DXF_CHECK_HRESULT(hr);
 
 
 	//
@@ -318,11 +329,12 @@ int APIENTRY wWinMain (
 	DXF::EntityDX_t grid;
 	ZeroMemory(&grid, sizeof(DXF::EntityDX_t));
 	hr = DXF::GenerateGridXY(&grid, &dxRenderer, 20);
-	CHECK_HRESULT(hr);
+	DXF_CHECK_HRESULT(hr);
 
 	//DXF::DestroyGridXY(&grid);
 
 	DXF::DestroyEntity(&grid);
+
 
 	//
 	// calc bounding box test
@@ -330,7 +342,7 @@ int APIENTRY wWinMain (
 	DXF::EntityDX_t sdkmesh;
 	ZeroMemory(&sdkmesh, sizeof(DXF::EntityDX_t));
 	hr = DXF::LoadEntity(&sdkmesh, &dxRenderer, TEXT("..\\Resources\\tiny.sdkmesh"));
-	CHECK_HRESULT(hr);
+	DXF_CHECK_HRESULT(hr);
 
 	XMVECTOR yAxis = XMVectorSet(0.0, 1.0, 0.0, 0.0);
 	XMVECTOR xAxis = XMVectorSet(1.0, 0.0, 0.0, 0.0);
@@ -353,7 +365,7 @@ int APIENTRY wWinMain (
 
 	// increase render threads priority
 	if (!SetThreadPriority(hRenderThread, THREAD_PRIORITY_HIGHEST)) {
-		DXF::ERROR_BOX();
+		DXF_ERROR_BOX();
 	}
 
 
@@ -389,7 +401,7 @@ int APIENTRY wWinMain (
 		// clear previously set minimum timer resolution
 		if (timeEndPeriod(tc.wPeriodMin) == TIMERR_NOCANDO) {
 			// failed timeEndPeriod
-			DXF::ERROR_BOX();
+			DXF_ERROR_BOX();
 		}
 	}
 

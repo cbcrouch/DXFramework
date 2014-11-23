@@ -8,6 +8,10 @@
 #include "ResourceDXF.h"
 
 namespace DXF {
+
+	//
+	// TODO: this should be GeneaterGridXZ
+	//
 	HRESULT GenerateGridXY(_Out_ EntityDX_t *pEntity, _In_ RendererDX_t *pRenderer, int extent) {
 
 		//
@@ -91,7 +95,7 @@ namespace DXF {
 
 		HRESULT hr = pRenderer->pDevice->CreateTexture2D(&desc, NULL, &pTexture);
 
-		CHECK_HRESULT(hr);
+		DXF_CHECK_HRESULT(hr);
 
 
 		D3D11_BOX dstRegion;

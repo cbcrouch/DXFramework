@@ -13,16 +13,10 @@
 
 
 //
-// TODO: add namespaces, Wavefront Obj parsing and DXUT should all use a different namespace than DXF
+// TODO: add namespace for asset pipeline (use DXAP)
 //
 
-
-//
-// TODO: should use similiar definitions and interfaces as SDKMesh
-//
-
-
-// namespace FXUT
+// namespace DXAP // DirectX Asset Pipeline
 
 
 typedef struct Vertex_t {
@@ -37,7 +31,7 @@ typedef std::vector<std::vector<float>> VERTEX_VEC;
 typedef std::vector<std::vector<unsigned int>> INDEX_VEC;
 
 //
-// TODO: need to build an entity system that converts assets to an entity
+// TODO: need to build an asset pipeline that converts assets to an entity
 //
 
 
@@ -64,6 +58,10 @@ private:
 class IAsset
 {
 public:
+
+	//
+	// TODO: should use similiar definitions and interfaces as SDKMesh
+	//
 
 	//virtual void parseFileData(FileData& fileData);
 

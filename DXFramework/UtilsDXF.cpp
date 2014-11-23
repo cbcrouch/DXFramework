@@ -19,21 +19,23 @@ namespace DXF {
 		// NOTE: if a relevant HRESULT is needed use the following
 		//HRESULT hr = HRESULT_FROM_WIN32(dw);
 
-		// NOTE: FormatMessage will allocate memory
+		// NOTE: FormatMessage will allocate memory using LocalAlloc, free with LocalFree
 		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 			NULL, dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
 
-		int sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, lpszFunction, -1, NULL, 0);
+		
+		// TODO: for the entity system use the LFH (low fragmentation heap)
 
-		//
-		// TODO: replace LocalAlloc with HeapAlloc/HeapFree etc. (can use HeapAlloc and start of function and HeapFree at end
-		//       to clear out all dynamic memory allocations)
-		//
+		// http://msdn.microsoft.com/en-us/library/windows/desktop/aa366750(v=vs.85).aspx
 
-		// need to double the size needed to accommodate wide chars
-		LPWSTR lpszFunctionW = (LPWSTR)LocalAlloc(LMEM_ZEROINIT, sizeNeeded * 2);
-		HRESULT hr = MultiByteToWideChar(CP_UTF8, 0, lpszFunction, -1, lpszFunctionW, sizeNeeded);
+		
+		SIZE_T size = SizeNeededInUTF8(lpszFunction);
+		HANDLE hProcHeap = GetProcessHeap();
 
+		LPWSTR lpszFunctionW = (LPWSTR)HeapAlloc(hProcHeap, HEAP_ZERO_MEMORY, size);
+		assert(lpszFunctionW != NULL);
+
+		HRESULT hr = ANSItoUTF8(lpszFunctionW, lpszFunction, (int)size);
 		switch (hr) {
 			case ERROR_INSUFFICIENT_BUFFER: OutputDebugString(TEXT("ErrorBox: MultiByteToWideChar failed with error ERROR_INSUFFICIENT_BUFFER\n")); break;
 			case ERROR_INVALID_FLAGS: OutputDebugString(TEXT("ErrorBox: MultiByteToWideChar failed with error ERROR_INVALID_FLAGS\n")); break;
@@ -42,20 +44,33 @@ namespace DXF {
 			default: break;
 		}
 
-		//
-		// TODO: need to set the displayBuffPadding to whatever the maximum DWORD error length is plus the length of the
-		//       text string used in the StringCchPrintf call
-		//
-		const int displayBuffPadding = 64;
-		lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT, (lstrlen((LPCTSTR)lpMsgBuf) + lstrlen((LPCTSTR)lpszFunctionW) + displayBuffPadding) * sizeof(TCHAR));
-		StringCchPrintf((LPTSTR)lpDisplayBuf, LocalSize(lpDisplayBuf) / sizeof(TCHAR),
-			TEXT("%s failed with error %d: %s"), lpszFunctionW, dw, (LPCTSTR)lpMsgBuf);
+		int displayBufLen = lstrlen(TEXT("%s failed with error %d: %s")) +
+			lstrlen((LPCTSTR)lpszFunctionW) +
+			lstrlen((LPCTSTR)lpMsgBuf);
+
+		// decrement format specifier characters since they will be replaced in the final string
+		displayBufLen -= 6;
+
+		if (dw != 0) {
+			displayBufLen += ((int)log10(dw)) + 1;
+		}
+		else {
+			displayBufLen += 1;
+		}
+
+		lpDisplayBuf = HeapAlloc(hProcHeap, HEAP_ZERO_MEMORY, displayBufLen * sizeof(TCHAR));
+		assert(lpDisplayBuf != NULL);
+
+		StringCchPrintf((LPTSTR)lpDisplayBuf, displayBufLen, TEXT("%s failed with error %d: %s"),
+			lpszFunctionW, dw, (LPCTSTR)lpMsgBuf);
 
 		MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK);
 
+		// NOTE: FormatMessage allocated memory using LocalAlloc, free with LocalFree
 		LocalFree(lpMsgBuf);
-		LocalFree(lpszFunctionW);
-		LocalFree(lpDisplayBuf);
+
+		BOOL bVal = HeapFree(hProcHeap, 0, (LPVOID)lpszFunctionW);
+		bVal = HeapFree(hProcHeap, 0, lpDisplayBuf);
 	}
 
 	void ErrorExit(LPSTR lpszFunction) {
@@ -63,20 +78,30 @@ namespace DXF {
 		ExitProcess(GetLastError());
 	}
 
-	HRESULT ANSItoUTF8(_Out_ LPWSTR lpszUtf, _In_ LPCSTR lpszAnsi) {
-		int sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, lpszAnsi, -1, NULL, 0);
-		return MultiByteToWideChar(CP_UTF8, 0, lpszAnsi, -1, lpszUtf, sizeNeeded);
+	SIZE_T SizeNeededInUTF8(_In_ LPCSTR lpszAnsi) {
+		//
+		// TODO: need to double the size needed to accommodate wide chars, something is not quite right
+		//       about this (possibly using MultiByteToWideChar wrong, CP_ACP doesn't seem to be right either)
+		//
+		return MultiByteToWideChar(CP_UTF8, 0, lpszAnsi, -1, NULL, 0) * 2;
 	}
 
-	HRESULT UTF8toANSI(_Out_ LPSTR lpszAnsi, _In_ LPCWSTR lpszUtf) {
-		int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, lpszUtf, -1, NULL, 0, NULL, FALSE);
-		return WideCharToMultiByte(CP_UTF8, 0, lpszUtf, -1, lpszAnsi, sizeNeeded, NULL, FALSE);
+	SIZE_T SizeNeededInANSI(_In_ LPCWSTR lpszUtf) {
+		return WideCharToMultiByte(CP_UTF8, 0, lpszUtf, -1, NULL, 0, NULL, FALSE);
+	}
+
+	HRESULT ANSItoUTF8(_Out_ LPWSTR lpszUtf, _In_ LPCSTR lpszAnsi, _In_ const int size) {
+		return MultiByteToWideChar(CP_UTF8, 0, lpszAnsi, -1, lpszUtf, size);
+	}
+
+	HRESULT UTF8toANSI(_Out_ LPSTR lpszAnsi, _In_ LPCWSTR lpszUtf, _In_ const int size) {
+		return WideCharToMultiByte(CP_UTF8, 0, lpszUtf, -1, lpszAnsi, size, NULL, FALSE);
 	}
 
 	void InitTimer(BasicTimer_t *pTimer) {
 		// ticks per second
 		if (!QueryPerformanceFrequency(&(pTimer->m_frequency))) {
-			ERROR_BOX();
+			DXF_ERROR_BOX();
 		}
 		Reset(pTimer);
 	}
@@ -91,7 +116,7 @@ namespace DXF {
 	void Update(BasicTimer_t *pTimer) {
 		// will get number of clock ticks
 		if (!QueryPerformanceCounter(&(pTimer->m_currentTime))) {
-			ERROR_BOX();
+			DXF_ERROR_BOX();
 		}
 
 		//

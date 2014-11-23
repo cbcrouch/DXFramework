@@ -21,7 +21,9 @@
 
 
 // NOTE: using the follow defines to give some context to the aligned byte offsets used in the shader
-static_assert(sizeof(float) == 4, "assert failed, sizeof(float) != 4 bytes");
+//static_assert(sizeof(float) == 4, "assert failed, sizeof(float) != 4 bytes");
+
+C_ASSERT(sizeof(float) == 4);
 
 #define XMFLOAT2_SIZE 8
 #define XMFLOAT3_SIZE 12
@@ -167,42 +169,25 @@ namespace DXF {
 		dwShaderFlags |= D3DCOMPILE_DEBUG;
 #endif
 
-		ID3DBlob *pErrorBlob;
-
-		//
-		// TODO: clean up string converion code
-		//
-
-		// CP_ACP  for ANSI code page
-/*
-		// ANSI string to Unicode (UTF8)
-		LPSTR lpszFunction = "Test Text";
-		int sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, lpszFunction, -1, NULL, 0);
-		LPWSTR lpszFunctionW = (LPWSTR)LocalAlloc(LMEM_ZEROINIT, sizeNeeded * 2); // why does this have to be * 2 ?? would using CP_ACP help ??
-		hr = MultiByteToWideChar(CP_UTF8, 0, lpszFunction, -1, lpszFunctionW, sizeNeeded);
-		if (FAILED(hr)) {
-			ERROR_BOX();
-		}
-
-		//...
-
-		LocalFree(lpszFunctionW);
-*/
+		ID3DBlob *pErrorBlob = NULL;
 
 #ifdef _UNICODE
+		SIZE_T size = SizeNeededInANSI(szEntryPoint);
+		LPSTR szEntryPointA = (LPSTR)LocalAlloc(LMEM_ZEROINIT, size);
+		assert(szEntryPointA != NULL);
 
-		int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, szEntryPoint, -1, NULL, 0, NULL, FALSE);
-		LPSTR szEntryPointA = (LPSTR)LocalAlloc(LMEM_ZEROINIT, sizeNeeded);
-		hr = WideCharToMultiByte(CP_UTF8, 0, szEntryPoint, -1, szEntryPointA, sizeNeeded, NULL, FALSE);
+		hr = UTF8toANSI(szEntryPointA, szEntryPoint, (int)size);
 		if (FAILED(hr)) {
-			ERROR_BOX();
+			DXF_ERROR_BOX();
 		}
 
-		sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, szShaderModel, -1, NULL, 0, NULL, FALSE);
-		LPSTR szShaderModelA = (LPSTR)LocalAlloc(LMEM_ZEROINIT, sizeNeeded);
-		hr = WideCharToMultiByte(CP_UTF8, 0, szShaderModel, -1, szShaderModelA, sizeNeeded, NULL, FALSE);
+		size = SizeNeededInANSI(szShaderModel);
+		LPSTR szShaderModelA = (LPSTR)LocalAlloc(LMEM_ZEROINIT, size);
+		assert(szShaderModelA != NULL);
+
+		hr = UTF8toANSI(szShaderModelA, szShaderModel, (int)size);
 		if (FAILED(hr)) {
-			ERROR_BOX();
+			DXF_ERROR_BOX();
 		}
 
 		hr = D3DCompileFromFile(szFilename, NULL, NULL, szEntryPointA, szShaderModelA,
@@ -220,7 +205,7 @@ namespace DXF {
 				//
 				// TODO: check error messages in pErrorBlob
 				//
-				ERROR_BOX();
+				DXF_ERROR_BOX();
 			}
 
 			if (pErrorBlob) {

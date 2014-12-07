@@ -35,19 +35,19 @@ namespace DXF {
 
 		// set vertex data
 		int index = 0;
-		for (int i = -extent; i <= extent; i++) {
+		for (int i = -extent; i <= extent; ++i) {
 			pEntity->pMesh->pVertices[index].pos   = XMFLOAT3((float)extent, 0.0f, (float)i);
 			pEntity->pMesh->pVertices[index+1].pos = XMFLOAT3((float)-extent, 0.0f, (float)i);
 			index += 2;
 		}
-		for (int i = -extent; i <= extent; i++) {
+		for (int i = -extent; i <= extent; ++i) {
 			pEntity->pMesh->pVertices[index].pos = XMFLOAT3((float)i, 0.0f, (float)extent);
 			pEntity->pMesh->pVertices[index + 1].pos = XMFLOAT3((float)i, 0.0f, (float)-extent);
 			index += 2;
 		}
 
 		// set index data
-		for (int i = 0; i < numVertices; i++) {
+		for (int i = 0; i < numVertices; ++i) {
 			pEntity->pMesh->pIndices[i] = i;
 		}
 
@@ -163,28 +163,28 @@ namespace DXF {
 		float max_y, min_y;
 		float max_z, min_z;
 
-		for (UINT iMesh = 0; iMesh < pEntity->pMeshSDK->GetNumMeshes(); iMesh++) {
-			for (UINT iVB = 0; iVB < pEntity->pMeshSDK->GetNumVBs(); iVB++) {
+		for (UINT iMesh = 0; iMesh < pEntity->pMeshSDK->GetNumMeshes(); ++iMesh) {
+			for (UINT iVB = 0; iVB < pEntity->pMeshSDK->GetNumVBs(); ++iVB) {
 
 				BYTE *pVertices = pEntity->pMeshSDK->GetRawVerticesAt(iVB);
 				UINT64 nVertices = pEntity->pMeshSDK->GetNumVertices(iMesh, iVB);
 				UINT64 vertexStride = pEntity->pMeshSDK->GetVertexStride(iMesh, iVB);
 
 				float *pVertex = (float *)pVertices;
-				max_x = min_x = *pVertex; pVertex++;
-				max_y = min_y = *pVertex; pVertex++;
-				max_z = min_z = *pVertex; pVertex++;
+				max_x = min_x = *pVertex; ++pVertex;
+				max_y = min_y = *pVertex; ++pVertex;
+				max_z = min_z = *pVertex; ++pVertex;
 
-				for (UINT64 i = 0; i < nVertices; i++) {
+				for (UINT64 i = 0; i < nVertices; ++i) {
 					pVertex = (float *)pVertices;
 
 					if (*pVertex < min_x) { min_x = *pVertex; }
 					if (*pVertex > max_x) { max_x = *pVertex; }
-					pVertex++;
+					++pVertex;
 
 					if (*pVertex < min_y) { min_y = *pVertex; }
 					if (*pVertex > max_y) { max_y = *pVertex; }
-					pVertex++;
+					++pVertex;
 
 					if (*pVertex < min_z) { min_z = *pVertex; }
 					if (*pVertex > max_z) { max_z = *pVertex; }

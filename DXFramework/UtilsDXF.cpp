@@ -23,12 +23,6 @@ namespace DXF {
 		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 			NULL, dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
 
-		
-		// TODO: for the entity system use the LFH (low fragmentation heap)
-
-		// http://msdn.microsoft.com/en-us/library/windows/desktop/aa366750(v=vs.85).aspx
-
-		
 		SIZE_T size = SizeNeededInUTF8(lpszFunction);
 		HANDLE hProcHeap = GetProcessHeap();
 
@@ -48,9 +42,10 @@ namespace DXF {
 			lstrlen((LPCTSTR)lpszFunctionW) +
 			lstrlen((LPCTSTR)lpMsgBuf);
 
-		// decrement format specifier characters since they will be replaced in the final string
+		// decrement by number of format specifier characters since they will be replaced in the final string
 		displayBufLen -= 6;
 
+		// calculate number of digits dw will print
 		if (dw != 0) {
 			displayBufLen += ((int)log10(dw)) + 1;
 		}

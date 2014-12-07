@@ -9,16 +9,6 @@
 #pragma once
 
 
-//
-// TODO: rename files to have a DXF suffix
-//
-
-
-
-//
-// TODO: could also move timing logic into an Events.cpp module alongside the events helper functions
-//
-
 // altdevblogaday.com/2011/07/03/threading-and-your-game-loop
 // update thread
 // prepare thread
@@ -42,6 +32,13 @@
 // primitives stored in scene pool(s) / heap(s)
 // pose and state travel through event system into queues
 
+
+
+//
+// TODO: need to implement an event subsystem and shared memory pool (with permissions)
+//       that is integrated into the task subsystem
+//
+
 typedef enum WINDOW_EVENT : unsigned int {
 	WND_CLOSE = 0,
 	WND_CREATE
@@ -50,7 +47,7 @@ typedef enum WINDOW_EVENT : unsigned int {
 //
 // TODO: make these of TCHAR type
 //
-const wchar_t* WINDOW_EVENT_STR[] = { // TODO: really needs a better name, WndEventStr, WND_EVENT_STR, WINDOW_EVTSTR ??
+const wchar_t* WINDOW_EVENT_STR[] = {
 	L"WindowW32CloseEvt",
 	L"WindowW32CreateEvt"  // window successfully created, it is now safe to create the device
 };

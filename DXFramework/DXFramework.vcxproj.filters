@@ -53,6 +53,9 @@
     <ClCompile Include="WindowDXF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GamePadDXF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\DXUT\DDSTextureLoader.h">
@@ -89,6 +92,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WindowDXF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePadDXF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

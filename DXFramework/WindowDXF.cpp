@@ -6,28 +6,8 @@
 //
 
 #include "WindowDXF.h"
-#include "EventsDXF.h"
-
 
 namespace DXF {
-
-	//
-	// TODO: need to setup a window event system
-	//
-
-	//
-	// TODO: problem with this is that the events will overlap (i.e. will be the same strings for all windows)
-	//       should think of a good way to modify the string by appending a GUID on the end or even better the
-	//       window handle
-	//
-	const WINDOW_EVENT evts[] = {
-		WND_CLOSE,
-		WND_CREATE
-	};
-
-	//
-	// TODO: add support for XInput (for gamepad control) perhaps include in a separate GamepadDX module
-	//
 
 	LRESULT CALLBACK WindowProcedure(_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wParam, _In_ LPARAM lParam) {
 		LRESULT rv = 0;
@@ -38,7 +18,26 @@ namespace DXF {
 			// MSDN keyboard input
 			// http://msdn.microsoft.com/en-us/library/windows/desktop/ms646268(v=vs.85).aspx
 
+			//
+			// TODO: try using Raw Input for a similar threaded polling model as what is used
+			//       by the XInput implementation
+			//       http://msdn.microsoft.com/en-us/library/windows/desktop/ms645536(v=vs.85).aspx
+			//
+
+			case WM_SYSKEYDOWN: {
+				//
+			}
+			case WM_SYSKEYUP: {
+				//
+			}
+
 			case WM_KEYDOWN: {
+				//
+				// TODO: check lParam to see if key was previously down/up
+				//
+				//BOOL wasDown = ((lParam & (1 << 30)) != 0);
+				//BOOL isDown = ((lParam & (1 << 31));
+
 				if (wParam == VK_SPACE) {
 					OutputDebugString(TEXT("space key down event\n"));
 				}
@@ -59,6 +58,8 @@ namespace DXF {
 				//
 				// TODO: resize the viewport
 				//
+				RECT clientRect;
+				GetClientRect(hwnd, &clientRect);
 			} break;
 
 			case WM_ACTIVATEAPP: {
@@ -131,20 +132,23 @@ namespace DXF {
 		pWin->origin.y = CW_USEDEFAULT;
 		pWin->winSize = winSize;
 
-		//
-		// TODO: check if UNICODE and then call correct string copy function
-		//
-
 		// copy strings
-		ua_tcscpy_s(pWin->title, MAX_STRING - 1, szName);
-		ua_tcscpy_s(pWin->className, MAX_STRING - 1, TEXT("DXWindowClass"));
-
-		//wcsncpy_s(pWin->title, pName, MAX_STRING - 1);
-		//wcsncpy_s(pWin->className, L"DXWindowClass", MAX_STRING - 1);
+#ifdef UNICODE
+		wcsncpy_s(pWin->title, szName, MAX_STRING - 1);
+		wcsncpy_s(pWin->className, L"DXWindowClass", MAX_STRING - 1);
+#else
+		strncpy_s(pWin->title, szName, MAX_STRING - 1);
+		strncpy_s(pWin->className, "DXWindowClass", MAX_STRING - 1);
+#endif
 
 		// populate window class struct
 		pWin->winClass.cbSize = sizeof(WNDCLASSEX);
-		pWin->winClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+
+		//
+		// NOTE: add CS_OWNDC if planning on getting and then retaining window device context
+		//
+		pWin->winClass.style = CS_HREDRAW | CS_VREDRAW;
+
 		pWin->winClass.lpfnWndProc = WindowProcedure;
 		pWin->winClass.cbClsExtra = 0;
 		pWin->winClass.cbWndExtra = 0;

@@ -31,14 +31,16 @@ namespace DXF {
 	void ErrorBox(LPSTR lpszFunction); // warns of error using a message box
 	void ErrorExit(LPSTR lpszFunction); // displays error in message box then exits
 
-	//
-	// TODO: inline functions using __forceinline
-	//
 	SIZE_T SizeNeededInUTF8(_In_ LPCSTR lpszAnsi);
 	SIZE_T SizeNeededInANSI(_In_ LPCWSTR lpszUtf);
 	HRESULT ANSItoUTF8(_Out_ LPWSTR lpszUtf, _In_ LPCSTR lpszAnsi, _In_ const int size);
 	HRESULT UTF8toANSI(_Out_ LPSTR lpszAnsi, _In_ LPCWSTR lpszUtf, _In_ const int size);
 
+
+
+	//
+	// TODO: refactor timer so that it doesn't use/need floats
+	//
 	typedef struct BasicTimer_t {
 		LARGE_INTEGER m_frequency;
 		LARGE_INTEGER m_currentTime;

@@ -13,6 +13,7 @@
 
 // project headers
 #include "WindowDXF.h"
+#include "GamePadDXF.h"
 #include "RendererDXF.h"
 #include "ResourceDXF.h"
 #include "SamplerDXF.h"
@@ -248,21 +249,26 @@ int APIENTRY wWinMain (
 
 
 	//
-	// TODO: adjust pacing algorithm to use min supported timer resolution
+	// TODO: implement pacing algorithm to use min supported timer resolution (tc.wPeriodMin)
 	//
+
+
 	TIMECAPS tc;
 	ZeroMemory(&tc, sizeof(TIMECAPS));
 	MMRESULT tr = TIMERR_NOCANDO;
 	MMRESULT mmr = timeGetDevCaps(&tc, sizeof(TIMECAPS));
 	if (mmr != MMSYSERR_NOERROR) {
-		//
-		// TODO: if failed to get resolution of timer device, attempt to use some default pacing
-		//
+		// set the minimum timer resolution, in ms, for the application to the minimum supported
 		tr = timeBeginPeriod(tc.wPeriodMin);
 		if (tr == TIMERR_NOCANDO) {
-			// failed timeBeginPeriod
 			DXF_ERROR_BOX();
 		}
+	}
+
+	if ((mmr == MMSYSERR_NOERROR) || (tr == TIMERR_NOCANDO)) {
+		//
+		// TODO: failed to get or set resolution of timer device, attempt to use some default pacing
+		//
 	}
 
 

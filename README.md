@@ -10,7 +10,7 @@ of the Win32 API and DirectX. Work will be slow going given that I am a family m
 hobby projects as well. Also all development is being done in another revision control system, this repo will
 only occasionally be updated with various notable snapshots.
 
-Beware of hardcoded paths.
+Beware of hardcoded paths and use of tabs.
 
 Dependencies
 ----------------

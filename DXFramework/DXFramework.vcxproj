@@ -117,7 +117,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;XInput.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
       <Command>copy /y "$(WindowsSdkDir)redist\d3d\$(PlatformTarget)\D3DCompile*.DLL" "$(TargetDir)"</Command>
@@ -171,7 +171,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;XInput.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
       <Command>copy /y "$(WindowsSdkDir)redist\d3d\$(PlatformTarget)\D3DCompile*.DLL" "$(TargetDir)"</Command>
@@ -186,6 +186,7 @@
   <ItemGroup>
     <ClCompile Include="..\DXUT\DDSTextureLoader.cpp" />
     <ClCompile Include="..\DXUT\SDKmesh.cpp" />
+    <ClCompile Include="GamePadDXF.cpp" />
     <ClCompile Include="RendererDXF.cpp" />
     <ClCompile Include="DXFramework.cpp" />
     <ClCompile Include="ResourceDXF.cpp" />
@@ -199,6 +200,7 @@
     <ClInclude Include="..\DXUT\DDSTextureLoader.h" />
     <ClInclude Include="..\DXUT\SDKmesh.h" />
     <ClInclude Include="AssetDXF.h" />
+    <ClInclude Include="GamePadDXF.h" />
     <ClInclude Include="RendererDXF.h" />
     <ClInclude Include="DXFCommon.h" />
     <ClInclude Include="EventsDXF.h" />

@@ -77,7 +77,7 @@ namespace DXF {
 		sd.Windowed = TRUE;
 
 		// attempt to get perferred driver type and feature level
-		for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++) {
+		for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; ++driverTypeIndex) {
 			pRenderer->driverType = driverTypes[driverTypeIndex];
 
 			hr = D3D11CreateDeviceAndSwapChain(NULL, pRenderer->driverType, NULL, CreateRendererFlags, featureLevels,

@@ -93,48 +93,58 @@ namespace DXF {
 		return WideCharToMultiByte(CP_UTF8, 0, lpszUtf, -1, lpszAnsi, size, NULL, FALSE);
 	}
 
-	void InitTimer(BasicTimer_t *pTimer) {
-		// ticks per second
-		if (!QueryPerformanceFrequency(&(pTimer->m_frequency))) {
+	void InitOperationTimer(OperationTimer_t *pTimer) {
+		//
+		// NOTE: perf counter frequency is set at boot time and does not change
+		//       (at least according to the documentation)
+		//
+
+		// ticks per second (note that this is NOT CPU clock cycles)
+		if (!QueryPerformanceFrequency(&(pTimer->frequency))) {
 			DXF_ERROR_BOX();
 		}
-		Reset(pTimer);
+
+		ResetOperationTimer(pTimer);
 	}
 
-	void Reset(BasicTimer_t *pTimer) {
-		Update(pTimer);
-		pTimer->m_startTime = pTimer->m_currentTime;
-		pTimer->m_total = 0.0f;
-		pTimer->m_delta = 1.0f / 60.0f;
+	void ResetOperationTimer(OperationTimer_t *pTimer) {
+		pTimer->cycleCountStart = __rdtsc();
+		if (!QueryPerformanceCounter(&(pTimer->perfCounterStart))) {
+			DXF_ERROR_BOX();
+		}
+
+		pTimer->lastCycleCount = pTimer->cycleCountStart;
+		pTimer->lastPerfCounter.QuadPart = pTimer->perfCounterStart.QuadPart;
 	}
 
-	void Update(BasicTimer_t *pTimer) {
-		// will get number of clock ticks
-		if (!QueryPerformanceCounter(&(pTimer->m_currentTime))) {
+	void Mark(OperationTimer_t *pTimer) {
+		pTimer->lastCycleCount = __rdtsc();
+		if (!QueryPerformanceCounter(&(pTimer->lastPerfCounter))) {
+			DXF_ERROR_BOX();
+		}
+	}
+
+	OperationSpan_t Measure(OperationTimer_t *pTimer) {
+		OperationSpan_t result;
+
+		uint64_t endCycleCount = __rdtsc();
+
+		LARGE_INTEGER endPerfCount;
+		if (!QueryPerformanceCounter(&endPerfCount)) {
 			DXF_ERROR_BOX();
 		}
 
 		//
-		// TODO: store a running average (approx. 10 frames) of how long it took to render each frame, can
-		//       then use this input into adjusting the sleep value
+		// TODO: need to verify calculations
 		//
 
-		// will also be very handy to have the resolution of the sleep used i.e. what is the maximum time
-		// (or average max) that the sleep can run over in ticks
+		uint64_t cyclesElapsed = endCycleCount - pTimer->lastCycleCount;
+		result.megaCyclesElapsed = cyclesElapsed / (1000 * 1000);
 
+		LARGE_INTEGER delta;
+		delta.QuadPart = endPerfCount.QuadPart - pTimer->lastPerfCounter.QuadPart;
+		result.microSecondsElapsed = (1000 * 1000 * delta.QuadPart) / pTimer->frequency.QuadPart;
 
-		pTimer->m_total = (float)(((double)(pTimer->m_currentTime.QuadPart - pTimer->m_startTime.QuadPart)) /
-			(double)pTimer->m_frequency.QuadPart);
-
-		if (pTimer->m_lastTime.QuadPart == pTimer->m_startTime.QuadPart) {
-			// if the timer was just reset, report a time delta equivalent to 60Hz frame time
-			pTimer->m_delta = 1.0f / 60.0f;
-		}
-		else {
-			pTimer->m_delta = (float)((double)(pTimer->m_currentTime.QuadPart - pTimer->m_lastTime.QuadPart) /
-				(double)pTimer->m_frequency.QuadPart);
-		}
-
-		pTimer->m_lastTime = pTimer->m_currentTime;
+		return result;
 	}
 };

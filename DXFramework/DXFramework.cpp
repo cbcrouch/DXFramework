@@ -201,7 +201,7 @@ unsigned __stdcall renderThread(void *pArgs)
 		PresentView(pRenderer);
 
 		//
-		// TODO: implement proper pacing algorithm
+		// TODO: implement proper pacing algorithm, calculate sleep interval based on timer results
 		//
 		Sleep(0);
 	}

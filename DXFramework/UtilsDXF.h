@@ -36,21 +36,32 @@ namespace DXF {
 	HRESULT ANSItoUTF8(_Out_ LPWSTR lpszUtf, _In_ LPCSTR lpszAnsi, _In_ const int size);
 	HRESULT UTF8toANSI(_Out_ LPSTR lpszAnsi, _In_ LPCWSTR lpszUtf, _In_ const int size);
 
+	typedef struct OperationTimer_t {
+		LARGE_INTEGER frequency;
+		LARGE_INTEGER perfCounterStart;
+		LARGE_INTEGER lastPerfCounter;
+		uint64_t cycleCountStart;
+		uint64_t lastCycleCount;
+	} OperationTimer_t;
 
+	typedef struct OperationSpan_t {
+		int64_t microSecondsElapsed;
+		int64_t megaCyclesElapsed;
+	} OperationSpan_t;
+
+	void InitOperationTimer(OperationTimer_t *pTimer);  // gets the frequency and then sets start values
+	void ResetOperationTimer(OperationTimer_t *pTimer); // will set the start values to current time
+
+	// starting point which to base measurements off of
+	void Mark(OperationTimer_t *pTimer);
+
+	// calculate and return an OperationSpan_t (won't modify the last values in the timer)
+	OperationSpan_t Measure(OperationTimer_t *pTimer);
 
 	//
-	// TODO: refactor timer so that it doesn't use/need floats
+	// TODO: add another timer based utility that is a circular buffer of
+	//       operation spans and generates statistics, can be used to smooth
+	//       out frame rate based displays and to provide some automated
+	//       detection of frame rate spikes/drops
 	//
-	typedef struct BasicTimer_t {
-		LARGE_INTEGER m_frequency;
-		LARGE_INTEGER m_currentTime;
-		LARGE_INTEGER m_startTime;
-		LARGE_INTEGER m_lastTime;
-		float m_total;
-		float m_delta;
-	} BasicTimer_t;
-
-	void InitTimer(BasicTimer_t *pTimer);
-	void Reset(BasicTimer_t *pTimer);
-	void Update(BasicTimer_t *pTimer);
 };

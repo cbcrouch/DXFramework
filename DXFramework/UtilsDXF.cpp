@@ -93,6 +93,75 @@ namespace DXF {
 		return WideCharToMultiByte(CP_UTF8, 0, lpszUtf, -1, lpszAnsi, size, NULL, FALSE);
 	}
 
+	FileMemory_t ReadFileIntoMemory(_In_ LPCTSTR fileName) {
+		FileMemory_t fm;
+
+		//
+		// TODO: should this use FILE_READ_DATA or GENERIC_READ ??
+		//
+		//HANDLE hFile = CreateFile(fileName, FILE_READ_DATA, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+		HANDLE hFile = CreateFile(fileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+
+		if (hFile == INVALID_HANDLE_VALUE) {
+			DXF_ERROR_BOX();
+		}
+
+		// NOTE: this function is deprecated, use GetFileSizeEx instead
+		//DWORD fileSize = GetFileSize(hFile, NULL);
+
+		//
+		// TODO: need to restructure how the error checking works in order to make this less branchy and generally cleaner
+		//
+		LARGE_INTEGER fileSize;
+		if (!GetFileSizeEx(hFile, &fileSize)) {
+			DXF_ERROR_BOX();
+		}
+		else {
+			//void *pMemory = VirtualAlloc(fileSize.QuadPart);
+			void *pMemory = malloc(fileSize.QuadPart);
+			if (pMemory) {
+				DWORD bytesRead = 0;
+				//
+				// TODO: defines for max values and an inline safe truncate function
+				//
+				assert(fileSize.QuadPart < 0xffffffff);
+				DWORD fileSize32 = (DWORD)fileSize.QuadPart;
+
+				if (!ReadFile(hFile, pMemory, fileSize32, &bytesRead, NULL)) {
+					if (pMemory) {
+						free(pMemory);
+						pMemory = NULL;
+					}
+					DXF_ERROR_BOX();
+				}
+
+				assert(fileSize32 == bytesRead);
+			}
+
+			//
+			// TODO: do something with the memory
+			//
+
+
+			//
+			// TODO: this pattern would also make a useful macro e.g. DXF_FREE() and for COM objects DXF_RELEASE()
+			//
+			if (pMemory) {
+				free(pMemory);
+				pMemory = NULL;
+			}
+		}
+
+		CloseHandle(hFile);
+
+		//
+		// TODO: populate file memory return structure
+		//
+
+		return fm;
+	}
+
+
 	void InitOperationTimer(OperationTimer_t *pTimer) {
 		//
 		// NOTE: perf counter frequency is set at boot time and does not change
@@ -127,6 +196,9 @@ namespace DXF {
 	OperationSpan_t Measure(OperationTimer_t *pTimer) {
 		OperationSpan_t result;
 
+		//
+		// TODO: may also want to try GetTickCount64
+		//
 		uint64_t endCycleCount = __rdtsc();
 
 		LARGE_INTEGER endPerfCount;
@@ -143,7 +215,7 @@ namespace DXF {
 
 		LARGE_INTEGER delta;
 		delta.QuadPart = endPerfCount.QuadPart - pTimer->lastPerfCounter.QuadPart;
-		result.microSecondsElapsed = (1000 * 1000 * delta.QuadPart) / pTimer->frequency.QuadPart;
+		result.msElapsed = 1000 * delta.QuadPart / pTimer->frequency.QuadPart;
 
 		return result;
 	}

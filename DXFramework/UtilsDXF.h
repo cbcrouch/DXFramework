@@ -27,6 +27,16 @@ if (FAILED(HR)) { \
 #define DXF_ERROR_EXIT() {}
 #endif
 
+
+//
+// TODO: define custom "assert" macro that will do this for internal builds and then strip out
+//       for shipping builds
+//
+
+//#define DXF_ASSERT(cond) if(!cond) { DXF_ERROR_BOXS(); }
+//DXF_ASSERT(hFile != INVALID_HANDLE_VALUE);
+
+
 namespace DXF {
 	void ErrorBox(LPSTR lpszFunction); // warns of error using a message box
 	void ErrorExit(LPSTR lpszFunction); // displays error in message box then exits
@@ -35,6 +45,19 @@ namespace DXF {
 	SIZE_T SizeNeededInANSI(_In_ LPCWSTR lpszUtf);
 	HRESULT ANSItoUTF8(_Out_ LPWSTR lpszUtf, _In_ LPCSTR lpszAnsi, _In_ const int size);
 	HRESULT UTF8toANSI(_Out_ LPSTR lpszAnsi, _In_ LPCWSTR lpszUtf, _In_ const int size);
+
+	//inline uint32_t SafeTruncate(uint64_t value) {
+	//	assert(value <= 0xffffffff);
+	//	uint32_t ret = (uint32_t)value;
+	//	return ret;
+	//}
+
+	typedef struct FileMemory_t {
+		SIZE fileSize;
+		LPVOID data;
+	} FileMemory_t;
+
+	FileMemory_t ReadFileIntoMemory(_In_ LPCTSTR fileName);
 
 	typedef struct OperationTimer_t {
 		LARGE_INTEGER frequency;
@@ -45,7 +68,7 @@ namespace DXF {
 	} OperationTimer_t;
 
 	typedef struct OperationSpan_t {
-		int64_t microSecondsElapsed;
+		int64_t msElapsed;
 		int64_t megaCyclesElapsed;
 	} OperationSpan_t;
 

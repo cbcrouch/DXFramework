@@ -93,7 +93,24 @@ unsigned __stdcall renderThread(void *pArgs)
 	ULONGLONG dwTimeStart = 0;
 	ULONGLONG dwTimeCur = 0;
 
+	//
+	// TODO: find out the montiors actual refresh rate
+	//
+	int refreshRateHz = 60;
+	float secondsElapsedPerFrame = 1000.0f / (float)refreshRateHz;
+
+	//
+	// TODO: implment an update loop for the simulation logic i.e. physics, AI, etc.
+	//
+	//int simulationRateHz = 30;
+	//float secondsElapsedPerFrame = 1000.0f / (float)simulationRateHz;
+
+	DXF::OperationTimer_t timer;
+	DXF::InitOperationTimer(&timer);
+
 	while(running) {
+
+		DXF::Mark(&timer);
 
 		//
 		// TODO: break this basic time/step based logic out into a "simulation update" module within the framework
@@ -198,11 +215,21 @@ unsigned __stdcall renderThread(void *pArgs)
 		}
 
 
-		PresentView(pRenderer);
-
 		//
 		// TODO: implement proper pacing algorithm, calculate sleep interval based on timer results
 		//
+		DXF::OperationSpan_t timeSpan = DXF::Measure(&timer);
+
+/*
+		int64_t msElapsed = timeSpan.msElapsed;
+		while (msElapsed < refreshRateHz) {
+			//Sleep(0);
+			timeSpan = DXF::Measure(&timer);
+			msElapsed = timeSpan.msElapsed;
+		}
+*/
+
+		PresentView(pRenderer);
 		Sleep(0);
 	}
 
@@ -245,7 +272,6 @@ int APIENTRY wWinMain (
 	SIZE windowSize;
 	windowSize.cx = 1280;
 	windowSize.cy = 720;
-
 
 
 	//
@@ -300,6 +326,13 @@ int APIENTRY wWinMain (
 	DXF_CHECK_HRESULT(hr);
 
 
+
+	//
+	// TODO: update the Wavefront Obj file reading to use the platform calls (move ReadFile function to UtilsDXF)
+	//
+
+	//LPCTSTR fileName = TEXT("..\\Resources\\cube\\cube.obj");
+	//DXF::FileMemory_t fm = DXF::ReadFileIntoMemory(fileName);
 
 	WavefrontObj obj;
 	obj.setFileNamePath("..\\Resources\\cube\\cube.obj");
@@ -376,15 +409,58 @@ int APIENTRY wWinMain (
 
 
 
-	// NOTE: should have a separte message pump thread with priority THREAD_PRIORITY_ABOVE_NORMAL
+	//
+	// TODO: should have a separte message pump thread with priority THREAD_PRIORITY_ABOVE_NORMAL
 	//       then block main on an EXIT event
+	//
 
     // enter main Win32 message loop
     MSG msg = {0};
     while (WM_QUIT != msg.message) {
         if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+			switch (msg.message) {
+				// MSDN keyboard input
+				// http://msdn.microsoft.com/en-us/library/windows/desktop/ms646268(v=vs.85).aspx
+
+				//
+				// TODO: try using Raw Input for a similar threaded polling model as what is used
+				//       by the XInput implementation
+				//       http://msdn.microsoft.com/en-us/library/windows/desktop/ms645536(v=vs.85).aspx
+				//
+
+				case WM_SYSKEYDOWN: {
+					//
+				}
+				case WM_SYSKEYUP: {
+					//
+				}
+
+				case WM_KEYDOWN: {
+					//
+					// TODO: check lParam to see if key was previously down to avoid re-sending/emitting event
+					//
+					//BOOL wasDown = ((lParam & (1 << 30)) != 0);
+					//BOOL isDown = ((lParam & (1 << 31));
+					if (msg.wParam == VK_SPACE) {
+						OutputDebugString(TEXT("space key down event\n"));
+					}
+				} break;
+
+				case WM_KEYUP: {
+					if (msg.wParam == VK_SPACE) {
+						OutputDebugString(TEXT("spacebar key up event\n"));
+						//
+						// TODO: emit message to the rendering thread to pause the animation
+						//
+					}
+				} break;
+
+				default:
+					// translates virtual-key messages into character messages
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+					break;
+			}
         }
     }
 

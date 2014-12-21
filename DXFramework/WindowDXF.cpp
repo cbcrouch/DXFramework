@@ -14,45 +14,6 @@ namespace DXF {
 		WindowW32_t *pWin = (WindowW32_t *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
 		switch (msg) {
-
-			// MSDN keyboard input
-			// http://msdn.microsoft.com/en-us/library/windows/desktop/ms646268(v=vs.85).aspx
-
-			//
-			// TODO: try using Raw Input for a similar threaded polling model as what is used
-			//       by the XInput implementation
-			//       http://msdn.microsoft.com/en-us/library/windows/desktop/ms645536(v=vs.85).aspx
-			//
-
-			case WM_SYSKEYDOWN: {
-				//
-			}
-			case WM_SYSKEYUP: {
-				//
-			}
-
-			case WM_KEYDOWN: {
-				//
-				// TODO: check lParam to see if key was previously down/up
-				//
-				//BOOL wasDown = ((lParam & (1 << 30)) != 0);
-				//BOOL isDown = ((lParam & (1 << 31));
-
-				if (wParam == VK_SPACE) {
-					OutputDebugString(TEXT("space key down event\n"));
-				}
-			} break;
-
-			case WM_KEYUP: {
-				if (wParam == VK_SPACE) {
-					OutputDebugString(TEXT("spacebar pressed\n"));
-
-					//
-					// TODO: emit message to the rendering thread to pause the animation
-					//
-				}
-			} break;
-
 			case WM_SIZE: {
 				OutputDebugString(TEXT("DXFramework: WM_SIZE\n"));
 				//

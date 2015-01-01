@@ -2,7 +2,7 @@
 // File:     DXFramework.cpp
 // Project:  DXFramework
 //
-// Copyright (c) 2014 Casey Crouch. All rights reserved.
+// Copyright (c) 2015 Casey Crouch. All rights reserved.
 //
 
 #include "DXFCommon.h"
@@ -388,7 +388,12 @@ int APIENTRY wWinMain (
 	sdkmesh.model *= XMMatrixRotationAxis(yAxis, XM_PI);
 	sdkmesh.model *= XMMatrixRotationAxis(xAxis, XM_PIDIV2);
 
-	DXF::CalcBoundingBox(&sdkmesh, &dxRenderer);
+	DXF::MeshBounds_t bounds = DXF::CalcBoundingBox(&sdkmesh);
+
+	char strBuffer[256] = { };
+	sprintf_s(strBuffer, sizeof(strBuffer), "mesh bounds x:[%f, %f], y:[%f, %f], z:[%f, %f]\n", bounds.min_x, bounds.max_x,
+		bounds.min_y, bounds.max_y, bounds.min_z, bounds.max_y);
+	OutputDebugStringA(strBuffer);
 
 	DXF::DestroyEntity(&sdkmesh);
 	//

@@ -2,7 +2,7 @@
 // File:     WavefrontObj.h
 // Project:  DXFramework
 //
-// Copyright (c) 2014 Casey Crouch. All rights reserved.
+// Copyright (c) 2015 Casey Crouch. All rights reserved.
 //
 
 #pragma once
@@ -63,15 +63,13 @@ public:
 	// TODO: should use similiar definitions and interfaces as SDKMesh
 	//
 
-	//virtual void parseFileData(FileData& fileData);
+	//virtual void parseFileData(FileData& fileData) = 0;
 
-	virtual std::shared_ptr<VERTEX_VEC> getVertices();
-	virtual std::shared_ptr<INDEX_VEC> getIndices();
+	virtual std::shared_ptr<VERTEX_VEC> getVertices() = 0;
+	virtual std::shared_ptr<INDEX_VEC> getIndices() = 0;
 };
 
-// http://stackoverflow.com/questions/8715630/implementing-interfaces-in-c
-
-class WavefrontObj // : public virtual IAsset
+class WavefrontObj : virtual public IAsset
 {
 public:
 	WavefrontObj() { }

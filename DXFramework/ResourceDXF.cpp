@@ -2,7 +2,7 @@
 // File:     ResourceDXF.cpp
 // Project:  DXFramework
 //
-// Copyright (c) 2014 Casey Crouch. All rights reserved.
+// Copyright (c) 2015 Casey Crouch. All rights reserved.
 //
 
 #include "ResourceDXF.h"
@@ -158,11 +158,8 @@ namespace DXF {
 		if (pEntity->pMeshSDK) { delete(pEntity->pMeshSDK); }
 	}
 
-	void CalcBoundingBox(_Inout_ EntityDX_t *pEntity, _In_ RendererDX_t *pRenderer) {
-		float max_x, min_x;
-		float max_y, min_y;
-		float max_z, min_z;
-
+	MeshBounds_t CalcBoundingBox(_Inout_ EntityDX_t *pEntity) {
+		MeshBounds_t bounds;
 		for (UINT iMesh = 0; iMesh < pEntity->pMeshSDK->GetNumMeshes(); ++iMesh) {
 			for (UINT iVB = 0; iVB < pEntity->pMeshSDK->GetNumVBs(); ++iVB) {
 
@@ -171,26 +168,30 @@ namespace DXF {
 				UINT64 vertexStride = pEntity->pMeshSDK->GetVertexStride(iMesh, iVB);
 
 				float *pVertex = (float *)pVertices;
-				max_x = min_x = *pVertex; ++pVertex;
-				max_y = min_y = *pVertex; ++pVertex;
-				max_z = min_z = *pVertex; ++pVertex;
+				bounds.max_x = bounds.min_x = *pVertex; ++pVertex;
+				bounds.max_y = bounds.min_y = *pVertex; ++pVertex;
+				bounds.max_z = bounds.min_z = *pVertex; ++pVertex;
 
 				for (UINT64 i = 0; i < nVertices; ++i) {
 					pVertex = (float *)pVertices;
 
-					if (*pVertex < min_x) { min_x = *pVertex; }
-					if (*pVertex > max_x) { max_x = *pVertex; }
+					if (*pVertex < bounds.min_x) { bounds.min_x = *pVertex; }
+					if (*pVertex > bounds.max_x) { bounds.max_x = *pVertex; }
 					++pVertex;
 
-					if (*pVertex < min_y) { min_y = *pVertex; }
-					if (*pVertex > max_y) { max_y = *pVertex; }
+					if (*pVertex < bounds.min_y) { bounds.min_y = *pVertex; }
+					if (*pVertex > bounds.max_y) { bounds.max_y = *pVertex; }
 					++pVertex;
 
-					if (*pVertex < min_z) { min_z = *pVertex; }
-					if (*pVertex > max_z) { max_z = *pVertex; }
+					if (*pVertex < bounds.min_z) { bounds.min_z = *pVertex; }
+					if (*pVertex > bounds.max_z) { bounds.max_z = *pVertex; }
 
 					pVertices += vertexStride;
 				}
+
+				//
+				// TODO: get bounds and center point for each mesh and vertex buffer
+				//
 
 				// upper: {x=188.352112 y=55.1263733 z=254.667694 }
 				// lower: {x=-188.293976 y=-127.013367 z=-258.593750 }
@@ -205,35 +206,37 @@ namespace DXF {
 				//
 				//XMVECTOR vCenter = XMVectorSet(0.25767413f, -28.503521f, 111.00689f, 0.0f);
 				//pEntity->model = XMMatrixTranslationFromVector(vCenter);
-
-				//
-				// TODO: translate bounding box center to the origin by taking the inverse of each component
-				//
-
-				float avg_x = (max_x + min_x) / 2.0f;
-				float avg_y = (max_y + min_y) / 2.0f;
-				float avg_z = (max_z + min_z) / 2.0f;
-
-				float abs_x, abs_y, abs_z;
-				abs_x = (fabsf(max_x) > fabsf(min_x)) ? fabsf(max_x) : fabsf(min_x);
-				abs_y = (fabsf(max_y) > fabsf(min_y)) ? fabsf(max_y) : fabsf(min_y);
-				abs_z = (fabsf(max_z) > fabsf(min_z)) ? fabsf(max_z) : fabsf(min_z);
-
-				// need to double abs_x, etc. otherwise will scale -1 -> 1 instead of -0.5 -> 0.5
-				abs_x *= 2.0f;
-				abs_y *= 2.0f;
-				abs_z *= 2.0f;
-
-				float scaleFactor;
-				scaleFactor = abs_x > abs_y ? abs_x : abs_y;
-				scaleFactor = scaleFactor > abs_z ? scaleFactor : abs_z;
-
-				//
-				// TODO: does DirectX follow the convetion of w = 1 for vectors 0 for points ??
-				//
-				XMVECTOR unitScalar = { 1.0f / scaleFactor, 1.0f / scaleFactor, 1.0f / scaleFactor, 1.0f };
 			}
 		}
+
+		//
+		// TODO: make a utility function to calc center point
+		//
+
+		float avg_x = (bounds.max_x + bounds.min_x) / 2.0f;
+		float avg_y = (bounds.max_y + bounds.min_y) / 2.0f;
+		float avg_z = (bounds.max_z + bounds.min_z) / 2.0f;
+
+		float abs_x, abs_y, abs_z;
+		abs_x = (fabsf(bounds.max_x) > fabsf(bounds.min_x)) ? fabsf(bounds.max_x) : fabsf(bounds.min_x);
+		abs_y = (fabsf(bounds.max_y) > fabsf(bounds.min_y)) ? fabsf(bounds.max_y) : fabsf(bounds.min_y);
+		abs_z = (fabsf(bounds.max_z) > fabsf(bounds.min_z)) ? fabsf(bounds.max_z) : fabsf(bounds.min_z);
+
+		// need to double abs_x, etc. otherwise will scale -1 -> 1 instead of -0.5 -> 0.5
+		abs_x *= 2.0f;
+		abs_y *= 2.0f;
+		abs_z *= 2.0f;
+
+		float scaleFactor;
+		scaleFactor = abs_x > abs_y ? abs_x : abs_y;
+		scaleFactor = scaleFactor > abs_z ? scaleFactor : abs_z;
+
+		//
+		// TODO: does DirectX follow the convetion of w = 1 for vectors 0 for points ??
+		//
+		XMVECTOR unitScalar = { 1.0f / scaleFactor, 1.0f / scaleFactor, 1.0f / scaleFactor, 1.0f };
+
+		return bounds;
 	}
 
 	HRESULT InitPrimitives(_Out_ PrimitivesDX_t *pPrimitives, _In_ MeshDX_t *pMesh, _In_ RendererDX_t *pRenderer) {

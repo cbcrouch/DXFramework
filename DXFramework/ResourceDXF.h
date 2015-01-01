@@ -2,7 +2,7 @@
 // File:     ResourceDXF.h
 // Project:  DXFramework
 //
-// Copyright (c) 2014 Casey Crouch. All rights reserved.
+// Copyright (c) 2015 Casey Crouch. All rights reserved.
 //
 
 #pragma once
@@ -37,6 +37,12 @@ namespace DXF {
 		XMFLOAT3 normal;
 		XMFLOAT2 tex;
 	} XMVertex_t;
+
+	typedef struct MeshBounds_t {
+		float max_x, min_x;
+		float max_y, min_y;
+		float max_z, min_z;
+	} MeshBounds_t;
 
 	typedef struct MeshDX_t {
 		DXF::XMVertex_t *pVertices;
@@ -176,7 +182,7 @@ namespace DXF {
 	//
 	// TODO: calc bounding box doesn't need renderer pointer passed in
 	//
-	void CalcBoundingBox(_Inout_ EntityDX_t *pEntity, _In_ RendererDX_t *pRenderer);
+	MeshBounds_t CalcBoundingBox(_Inout_ EntityDX_t *pEntity);
 
 	//
 	// TODO: function to scale entity to fit within a unit cube

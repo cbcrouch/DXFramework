@@ -2,7 +2,7 @@
 // File:     UtilsDXF.h
 // Project:  DXFramework
 //
-// Copyright (c) 2014 Casey Crouch. All rights reserved.
+// Copyright (c) 2015 Casey Crouch. All rights reserved.
 //
 
 #pragma once
@@ -53,11 +53,12 @@ namespace DXF {
 	//}
 
 	typedef struct FileMemory_t {
-		SIZE fileSize;
+		LARGE_INTEGER fileSize;
 		LPVOID data;
 	} FileMemory_t;
 
 	FileMemory_t ReadFileIntoMemory(_In_ LPCTSTR fileName);
+	void DestroyFileMemory(_Inout_ FileMemory_t *pFileMemory);
 
 	typedef struct OperationTimer_t {
 		LARGE_INTEGER frequency;

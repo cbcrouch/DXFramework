@@ -2,7 +2,7 @@
 // File:     UtilsDXF.cpp
 // Project:  DXFramework
 //
-// Copyright (c) 2014 Casey Crouch. All rights reserved.
+// Copyright (c) 2015 Casey Crouch. All rights reserved.
 //
 
 #include "UtilsDXF.h"
@@ -95,6 +95,7 @@ namespace DXF {
 
 	FileMemory_t ReadFileIntoMemory(_In_ LPCTSTR fileName) {
 		FileMemory_t fm;
+		ZeroMemory(&fm, sizeof(FileMemory_t));
 
 		//
 		// TODO: should this use FILE_READ_DATA or GENERIC_READ ??
@@ -106,12 +107,11 @@ namespace DXF {
 			DXF_ERROR_BOX();
 		}
 
-		// NOTE: this function is deprecated, use GetFileSizeEx instead
-		//DWORD fileSize = GetFileSize(hFile, NULL);
-
 		//
 		// TODO: need to restructure how the error checking works in order to make this less branchy and generally cleaner
 		//
+
+		// NOTE: GetFileSize is deprecated, use GetFileSizeEx instead
 		LARGE_INTEGER fileSize;
 		if (!GetFileSizeEx(hFile, &fileSize)) {
 			DXF_ERROR_BOX();
@@ -138,29 +138,25 @@ namespace DXF {
 				assert(fileSize32 == bytesRead);
 			}
 
-			//
-			// TODO: do something with the memory
-			//
-
-
-			//
-			// TODO: this pattern would also make a useful macro e.g. DXF_FREE() and for COM objects DXF_RELEASE()
-			//
-			if (pMemory) {
-				free(pMemory);
-				pMemory = NULL;
-			}
+			fm.fileSize = fileSize;
+			fm.data = pMemory;
 		}
 
 		CloseHandle(hFile);
-
-		//
-		// TODO: populate file memory return structure
-		//
-
 		return fm;
 	}
 
+	void DestroyFileMemory(_Inout_ FileMemory_t *pFileMemory) {
+		//
+		// TODO: this pattern would also make a useful macro e.g. DXF_FREE() and for COM objects DXF_RELEASE()
+		//
+		if (pFileMemory->data) {
+			free(pFileMemory->data);
+		}
+
+		memset(&(pFileMemory->fileSize), 0, sizeof(LARGE_INTEGER));
+		pFileMemory->data = NULL;
+	}
 
 	void InitOperationTimer(OperationTimer_t *pTimer) {
 		//

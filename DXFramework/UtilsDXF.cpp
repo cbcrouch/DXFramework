@@ -97,11 +97,13 @@ namespace DXF {
 		FileMemory_t fm;
 		ZeroMemory(&fm, sizeof(FileMemory_t));
 
+
 		//
 		// TODO: should this use FILE_READ_DATA or GENERIC_READ ??
 		//
 		//HANDLE hFile = CreateFile(fileName, FILE_READ_DATA, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 		HANDLE hFile = CreateFile(fileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+
 
 		if (hFile == INVALID_HANDLE_VALUE) {
 			DXF_ERROR_BOX();

@@ -193,7 +193,6 @@
     <ClCompile Include="ShaderDXF.cpp" />
     <ClCompile Include="SamplerDXF.cpp" />
     <ClCompile Include="UtilsDXF.cpp" />
-    <ClCompile Include="WavefrontObj.cpp" />
     <ClCompile Include="WindowDXF.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -208,7 +207,6 @@
     <ClInclude Include="ShaderDXF.h" />
     <ClInclude Include="SamplerDXF.h" />
     <ClInclude Include="UtilsDXF.h" />
-    <ClInclude Include="WavefrontObj.h" />
     <ClInclude Include="WindowDXF.h" />
   </ItemGroup>
   <ItemGroup>

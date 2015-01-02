@@ -32,9 +32,6 @@
     <ClCompile Include="..\DXUT\SDKmesh.cpp">
       <Filter>DXUT</Filter>
     </ClCompile>
-    <ClCompile Include="WavefrontObj.cpp">
-      <Filter>AssetPipeline</Filter>
-    </ClCompile>
     <ClCompile Include="RendererDXF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -63,9 +60,6 @@
     </ClInclude>
     <ClInclude Include="..\DXUT\SDKmesh.h">
       <Filter>DXUT</Filter>
-    </ClInclude>
-    <ClInclude Include="WavefrontObj.h">
-      <Filter>AssetPipeline</Filter>
     </ClInclude>
     <ClInclude Include="DXFCommon.h">
       <Filter>Common</Filter>

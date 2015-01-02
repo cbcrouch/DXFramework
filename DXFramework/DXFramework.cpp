@@ -11,6 +11,8 @@
 #include <process.h>  // threading
 #include <mmsystem.h> // timer
 
+#include <stdio.h> // sprintf_s
+
 // project headers
 #include "WindowDXF.h"
 #include "GamePadDXF.h"
@@ -19,7 +21,6 @@
 #include "SamplerDXF.h"
 #include "ShaderDXF.h"
 
-#include "WavefrontObj.h"
 
 //
 // TODO: remove globals after devising good method for submitting data to render thread
@@ -327,16 +328,14 @@ int APIENTRY wWinMain (
 
 
 
+	LPCTSTR fileName = TEXT("..\\Resources\\cube\\cube.obj");
+	DXF::FileMemory_t fm = DXF::ReadFileIntoMemory(fileName);
+
 	//
-	// TODO: update the Wavefront Obj file reading to use the platform calls (move ReadFile function to UtilsDXF)
+	// TODO: update the Wavefront Obj file reading to use the platform calls
 	//
 
-	//LPCTSTR fileName = TEXT("..\\Resources\\cube\\cube.obj");
-	//DXF::FileMemory_t fm = DXF::ReadFileIntoMemory(fileName);
-
-	WavefrontObj obj;
-	obj.setFileNamePath("..\\Resources\\cube\\cube.obj");
-	obj.parseAsset();
+	DXF::DestroyFileMemory(&fm);
 
 
 

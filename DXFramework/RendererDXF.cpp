@@ -19,7 +19,7 @@ namespace DXF {
 	static const float clearColor[4] = { 0.2f, 0.2f, 0.2f, 1.0f }; // gray
 
 
-	HRESULT InitRenderer(_Out_ RendererDX_t *pRenderer, _In_ HWND hwnd) {
+	HRESULT InitRenderer(_In_ HWND hwnd, _Out_ RendererDX_t *pRenderer) {
 		HRESULT hr = S_OK;
 
 		// get the width and height of the HWND
@@ -107,6 +107,16 @@ namespace DXF {
 				break;
 			}
 		}
+
+
+		//
+		// NOTE: at this point you could do some platform specific setup work by querying the device e.g.
+		//
+		//UINT sampleCount = 1;
+		//UINT numQualityLevels = 0;
+		//HRESULT hr = pRenderer->pDevice->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, sampleCount, &numQualityLevels);
+		//DXF_CHECK_HRESULT(hr);
+
 
 		// create a render target view
 		ID3D11Texture2D *pBackBuffer = NULL;

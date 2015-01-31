@@ -77,7 +77,7 @@ unsigned __stdcall renderThread(void *pArgs)
 
 
 	DXF::ViewVolume_t viewVolume;
-	DXF::InitViewVolume(&viewVolume, pRenderer);
+	DXF::InitViewVolume(pRenderer, &viewVolume);
 
 
 	// update constant resources that won't vary (or vary much) from frame to frame
@@ -280,10 +280,9 @@ int APIENTRY wWinMain (
 	//
 
 
-	TIMECAPS tc;
-	ZeroMemory(&tc, sizeof(TIMECAPS));
+	TIMECAPS tc = {};
 	MMRESULT tr = TIMERR_NOCANDO;
-	MMRESULT mmr = timeGetDevCaps(&tc, sizeof(TIMECAPS));
+	MMRESULT mmr = timeGetDevCaps(&tc, sizeof(tc));
 	if (mmr != MMSYSERR_NOERROR) {
 		// set the minimum timer resolution, in ms, for the application to the minimum supported
 		tr = timeBeginPeriod(tc.wPeriodMin);
@@ -299,31 +298,36 @@ int APIENTRY wWinMain (
 	}
 
 
+	//
+	// TODO: use virtual alloc to get a block of memory to manage memory
+	//
+	//void *pMemory = VirtualAlloc(size.QuadPart);
+
 
 	// init and create the Win32 window
-	hr = DXF::InitWindowW32(&dxWin, hInstance, TEXT("DirectX Framework"), windowSize, NULL);
+	hr = DXF::InitWindowW32(hInstance, TEXT("DirectX Framework"), windowSize, NULL, &dxWin);
 	DXF_CHECK_HRESULT(hr);
 
 	hr = DXF::CreateWindowW32(&dxWin);
 	DXF_CHECK_HRESULT(hr);
 
 	// create the Direct3D device
-	hr = InitRenderer(&dxRenderer, dxWin.handle);
+	hr = InitRenderer(dxWin.handle, &dxRenderer);
 	DXF_CHECK_HRESULT(hr);
 
 
 	// NOTE: for structs that contain pointers, ZeroMemory to init all to NULL
 
 	ZeroMemory(&hlslProgram, sizeof(DXF::ProgramDX_t));
-	hr = InitProgram(&hlslProgram, TEXT("Simple.fx"), &dxRenderer);
+	hr = InitProgram(&dxRenderer, TEXT("Simple.fx"), &hlslProgram);
 	DXF_CHECK_HRESULT(hr);
 
 	ZeroMemory(&hlslConstants, sizeof(DXF::ConstantsDX_t));
-	hr = InitConstBuffers(&hlslConstants, &dxRenderer);
+	hr = InitConstBuffers(&dxRenderer, &hlslConstants);
 	DXF_CHECK_HRESULT(hr);
 
 	ZeroMemory(&hlslSampler, sizeof(DXF::SamplerDX_t));
-	hr = InitSampler(&hlslSampler, &dxRenderer);
+	hr = InitSampler(&dxRenderer, &hlslSampler);
 	DXF_CHECK_HRESULT(hr);
 
 
@@ -364,22 +368,23 @@ int APIENTRY wWinMain (
 	//
 	//
 	//
-	DXF::EntityDX_t grid;
-	ZeroMemory(&grid, sizeof(DXF::EntityDX_t));
-	hr = DXF::GenerateGridXY(&grid, &dxRenderer, 20);
+	DXF::EntityDX_t grid = {};
+	hr = DXF::GenerateGridXZ(&dxRenderer, 20, &grid);
 	DXF_CHECK_HRESULT(hr);
 
-	//DXF::DestroyGridXY(&grid);
+	DXF::DestroyGridXZ(&grid);
 
-	DXF::DestroyEntity(&grid);
+	//
+	// TODO: update DestroyEntity call to clean up all entity resource
+	//
+	//DXF::DestroyEntity(&grid);
 
 
 	//
 	// calc bounding box test
 	//
-	DXF::EntityDX_t sdkmesh;
-	ZeroMemory(&sdkmesh, sizeof(DXF::EntityDX_t));
-	hr = DXF::LoadEntity(&sdkmesh, &dxRenderer, TEXT("..\\Resources\\tiny.sdkmesh"));
+	DXF::EntityDX_t sdkmesh = {};
+	hr = DXF::LoadEntity(&dxRenderer, TEXT("..\\Resources\\tiny.sdkmesh"), &sdkmesh);
 	DXF_CHECK_HRESULT(hr);
 
 	XMVECTOR yAxis = XMVectorSet(0.0, 1.0, 0.0, 0.0);

@@ -22,7 +22,7 @@
 #define MAX_STRING 256
 
 namespace DXF {
-	typedef struct WindowW32_t {
+	struct WindowW32_t {
 		// window specific members
 		HWND handle;
 		HWND parentHandle;
@@ -38,9 +38,9 @@ namespace DXF {
 		// application specific members
 		HINSTANCE hInstance;
 		HANDLE hWndCloseEvt;
-	} WindowW32_t;
+	};
 
-	HRESULT InitWindowW32(_Out_ WindowW32_t *pWin, _In_ HINSTANCE hInst, _In_z_ LPCTSTR szName, _In_ SIZE winSize, _In_opt_ HWND hParent);
+	HRESULT InitWindowW32(_In_ HINSTANCE hInst, _In_z_ LPCTSTR szName, _In_ SIZE winSize, _In_opt_ HWND hParent, _Out_ WindowW32_t *pWin);
 
 	HRESULT CreateWindowW32(_Inout_ WindowW32_t *pWin);
 	void DestroyWindowW32(_Inout_ WindowW32_t *pWin);

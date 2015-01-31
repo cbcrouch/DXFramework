@@ -27,13 +27,11 @@ if (FAILED(HR)) { \
 #define DXF_ERROR_EXIT() {}
 #endif
 
-
 //
 // TODO: define custom "assert" macro that will do this for internal builds and then strip out
 //       for shipping builds
 //
-
-//#define DXF_ASSERT(cond) if(!cond) { DXF_ERROR_BOXS(); }
+//#define DXF_ASSERT(cond) if(!cond) { DXF_ERROR_BOX(); }
 //DXF_ASSERT(hFile != INVALID_HANDLE_VALUE);
 
 
@@ -43,8 +41,8 @@ namespace DXF {
 
 	SIZE_T SizeNeededInUTF8(_In_ LPCSTR lpszAnsi);
 	SIZE_T SizeNeededInANSI(_In_ LPCWSTR lpszUtf);
-	HRESULT ANSItoUTF8(_Out_ LPWSTR lpszUtf, _In_ LPCSTR lpszAnsi, _In_ const int size);
-	HRESULT UTF8toANSI(_Out_ LPSTR lpszAnsi, _In_ LPCWSTR lpszUtf, _In_ const int size);
+	HRESULT ANSItoUTF8(_In_ LPCSTR lpszAnsi, _In_ const int size, _Out_ LPWSTR lpszUtf);
+	HRESULT UTF8toANSI(_In_ LPCWSTR lpszUtf, _In_ const int size, _Inout_ LPSTR lpszAnsi);
 
 	//inline uint32_t SafeTruncate(uint64_t value) {
 	//	assert(value <= 0xffffffff);
@@ -52,26 +50,26 @@ namespace DXF {
 	//	return ret;
 	//}
 
-	typedef struct FileMemory_t {
+	struct FileMemory_t {
 		LARGE_INTEGER fileSize;
 		LPVOID data;
-	} FileMemory_t;
+	};
 
 	FileMemory_t ReadFileIntoMemory(_In_ LPCTSTR fileName);
 	void DestroyFileMemory(_Inout_ FileMemory_t *pFileMemory);
 
-	typedef struct OperationTimer_t {
+	struct OperationTimer_t {
 		LARGE_INTEGER frequency;
 		LARGE_INTEGER perfCounterStart;
 		LARGE_INTEGER lastPerfCounter;
 		uint64_t cycleCountStart;
 		uint64_t lastCycleCount;
-	} OperationTimer_t;
+	};
 
-	typedef struct OperationSpan_t {
+	struct OperationSpan_t {
 		int64_t msElapsed;
 		int64_t megaCyclesElapsed;
-	} OperationSpan_t;
+	};
 
 	void InitOperationTimer(OperationTimer_t *pTimer);  // gets the frequency and then sets start values
 	void ResetOperationTimer(OperationTimer_t *pTimer); // will set the start values to current time

@@ -8,7 +8,7 @@
 #include "SamplerDXF.h"
 
 namespace DXF {
-	HRESULT InitSampler(_Out_ SamplerDX_t *pSampler, _In_ RendererDX_t *pRenderer) {
+	HRESULT InitSampler(_In_ RendererDX_t *pRenderer, _Out_ SamplerDX_t *pSampler) {
 		HRESULT hr = S_OK;
 
 		// create the sampler state

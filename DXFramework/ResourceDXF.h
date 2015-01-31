@@ -26,25 +26,24 @@ namespace DXF {
 	//
 	// TODO: move view volume and associated functions out into a separate module
 	//
-	typedef struct ViewVolume_t {
+	struct ViewVolume_t {
 		XMMATRIX view;
 		XMMATRIX projection;
-	} ViewVolume_t;
+	};
 
-
-	typedef struct XMVertex_t {
+	struct XMVertex_t {
 		XMFLOAT3 pos;
 		XMFLOAT3 normal;
 		XMFLOAT2 tex;
-	} XMVertex_t;
+	};
 
-	typedef struct MeshBounds_t {
+	struct MeshBounds_t {
 		float max_x, min_x;
 		float max_y, min_y;
 		float max_z, min_z;
-	} MeshBounds_t;
+	};
 
-	typedef struct MeshDX_t {
+	struct MeshDX_t {
 		DXF::XMVertex_t *pVertices;
 		WORD *pIndices;
 
@@ -57,9 +56,9 @@ namespace DXF {
 		// TODO: can probably safely get rid of vertex/mesh colors
 		//
 		XMFLOAT4 meshColor;
-	} MeshDX_t;
+	};
 
-	typedef struct PrimitivesDX_t {
+	struct PrimitivesDX_t {
 		// mesh primitive data buffers
 		ID3D11Buffer*           pVertexBuffer;
 		ID3D11Buffer*           pIndexBuffer;
@@ -67,9 +66,9 @@ namespace DXF {
 		// draw state
 		DXGI_FORMAT indexFormat;
 		D3D11_PRIMITIVE_TOPOLOGY topology;
-	} PrimitivesDX_t;
+	};
 
-	typedef struct DataMapDX_t {
+	struct DataMapDX_t {
 		int width;
 		int height;
 
@@ -85,12 +84,10 @@ namespace DXF {
 		// TODO: should find a good way to separate/decouple the GPU specific data
 		//
 		ID3D11Texture2D *pTexture;
-	} DataMapDX_t;
+	};
 
-	//
-	// TODO: this is a Phong based material, should differentiate from say a PBR surface model
-	//
-	typedef struct MaterialDX_t {
+	// phong material based on Wavefront obj format
+	struct MaterialDX_t {
 		float Ns; // specular coefficient
 		float Ni; // optical density (also known as index of refraction)
 
@@ -101,6 +98,9 @@ namespace DXF {
 		float Tr; // transparency
 		float Tf[3]; // transmission filter
 
+		//
+		// TODO: illumination model should be an enum
+		//
 		int illumModel;
 
 		float Ka[3]; // ambient color
@@ -115,13 +115,19 @@ namespace DXF {
 
 		//DataMapDX_t map_Tr; // transparency map
 		//DataMapDX_t map_bump; // or broken out into: bump, disp, decalT
-	} MaterialDX_t;
+	};
 
-	typedef struct EntityDX_t {
+	struct EntityDX_t {
 
+		//
+		// TODO: mesh shouldn't be a pointer
+		//
 		MeshDX_t*        pMesh;
-		MaterialDX_t*    pMaterial;
-		PrimitivesDX_t*  pPrimitives;
+
+		MaterialDX_t     material;
+		PrimitivesDX_t   primitives;
+
+		ID3D11Texture2D* pTexture;
 
 
 		//
@@ -146,58 +152,68 @@ namespace DXF {
 		//       box/shape could influence Mesh through tessellation control points ??)
 		//
 
-	} EntityDX_t;
-
-	//
-	// TODO: use correct SAL annotations
-	//
-
-	// http://msdn.microsoft.com/en-us/library/hh916382.aspx
-
-	// _In_			data is passed to the called function, and is treated as read-only
-	// _Inout_		usable data is passed into the function and potentially modified
-	// _In_z_		same as in except input has to be a NULL terminated string
-
-	// _Out_		the caller only provides space for the called function to write to; the called function writes data into that space
-	// _Outptr_		like _Out_ the value that's returned by the called function is a pointer i.e. createFunc(_Outptr_ **ppData, ...)
-	// _*opt_		parameter is allowed to be NULL
+	};
 
 
 	//
-	// TODO: make sure _Outptr_ is used only for creation functions that allocate memory, and use _Out_ for initialization function
+	// TODO: remove SAL annotations, replace _In_ with const and use __RESTRICT__ when two or more
+	//       pointers are passed to a function
 	//
 
-	// annotate all pointer parameters
-	// annotate value-range annotations so that code analysis can ensure buffer and pointer safety
-	// annotate locking rules and locking side effects
-	// annotate driver properties and other domain-specific properties
-
+	//
+	// TODO: pointer qualifier '*' should have no whitespace between it and the type
+	//
 
 	//
-	// TODO: update to common format of listing in parameters first followed by out parameters
+	// TODO: to use or not to use custom const macros ??
 	//
-	HRESULT LoadEntity(_Out_ EntityDX_t *pEntity, _In_ RendererDX_t *pRenderer, _In_z_ LPCTSTR fileName);
-	void DestroyEntity(_Inout_ EntityDX_t *pEntity);
+	// int* const pInt; // cannot modify pointer but can modify pointed at values
+	// const int* pInt; // cannot modify pointed at values but can modify pointer itself
 
-	//
-	// TODO: calc bounding box doesn't need renderer pointer passed in
-	//
-	MeshBounds_t CalcBoundingBox(_Inout_ EntityDX_t *pEntity);
+	HRESULT LoadEntity(CONST_PTR_VAL(RendererDX_t*) pRenderer, LPCTSTR fileName, CONST_PTR(EntityDX_t*) pEntity);
+	//HRESULT LoadEntity(const RendererDX_t* const pRenderer, LPCTSTR fileName, EntityDX_t* const pEntity);
 
+	void DestroyEntity(EntityDX_t* pEntity);
+
+
+	MeshBounds_t CalcBoundingBox(const EntityDX_t* const pEntity);
 	//
 	// TODO: function to scale entity to fit within a unit cube
 	//
 
 
-	HRESULT InitPrimitives(_Out_ PrimitivesDX_t *pPrimitives, _In_ MeshDX_t *pMesh, _In_ RendererDX_t *pRenderer);
+	//
+	// TODO: utility functions for creating default vertex/index buffers, need shorter names
+	//
+	//void CreateDefaultVertexBuffer(ID3D11Buffer**, numVertices, stride, offset, pData);
+	//void CreateDefaultIndexBuffer(ID3D11Buffer**, numIndices, format, pData);
+
+
+	HRESULT InitPrimitives(_In_ MeshDX_t *pMesh, _In_ RendererDX_t *pRenderer, _Out_ PrimitivesDX_t *pPrimitives);
 	void DestroyPrimitives(_Inout_ PrimitivesDX_t *pPrimitives);
 
-	HRESULT GenerateGridXY(_Out_ EntityDX_t *pEntity, _In_ RendererDX_t *pRenderer, int extent);
-	void DestroyGridXY(_Inout_ EntityDX_t *pEntity);
 
 	//
 	// TODO: also create a color coded guide line for x, y, z axis in a GenerateAxisGuide function
 	//
+	HRESULT GenerateGridXZ(_In_ RendererDX_t *pRenderer, const int32_t extent, _Out_ EntityDX_t *pEntity);
 
-	void InitViewVolume(_In_ ViewVolume_t *pViewVolume, _In_ RendererDX_t *pRenderer);
+	//
+	// TODO: should have a generic destroy entity function
+	//
+	void DestroyGridXZ(_Inout_ EntityDX_t *pEntity);
+
+
+	//
+	// TODO: function for drawing a primitives skeletal animation rig or frame data
+	//
+	// animation data that is stored in SDKmesh file format (not 100% of how to visualize)
+	//SDKANIMATION_FILE_HEADER* m_pAnimationHeader;
+	//SDKANIMATION_FRAME_DATA* m_pAnimationFrameData;
+	//DirectX::XMFLOAT4X4* m_pBindPoseFrameMatrices;
+	//DirectX::XMFLOAT4X4* m_pTransformedFrameMatrices;
+	//DirectX::XMFLOAT4X4* m_pWorldPoseFrameMatrices;
+
+
+	void InitViewVolume(_In_ RendererDX_t *pRenderer, _Out_ ViewVolume_t *pViewVolume);
 };

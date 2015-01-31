@@ -18,6 +18,10 @@
 #endif
 
 
+
+
+
+
 // base operating system
 #include <Windows.h>
 
@@ -37,6 +41,29 @@
 // NOTE: DX math should usually be avoided in favor of a more general purpose math lib
 #include <directxmath.h>
 using namespace DirectX;
+
+
+
+//
+// TODO: these project generic macros/typedefs/etc. should be in their own "common" header file
+//
+
+#define CONST_PTR(P) P const
+#define CONST_VAL(P) const P
+#define CONST_PTR_VAL(P) const P const
+
+
+//
+// TODO: either use C stdint types or declare own (Windows.h might bring these in automatically)
+//       and replace all implicit int/float/etc. types with explicit types int32/real32/etc.
+//
+//#include <cstdint>
+//using std::int32_t;
+//etc.
+
+//typedef int int32;
+//typedef float real32;
+//etc.
 
 
 #include "UtilsDXF.h"

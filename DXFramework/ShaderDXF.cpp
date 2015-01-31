@@ -31,7 +31,7 @@ C_ASSERT(sizeof(float) == 4);
 
 namespace DXF {
 
-	HRESULT InitProgram(_Out_ ProgramDX_t *pProgram, _In_z_ LPCTSTR szProgramName, _In_ RendererDX_t *pRenderer) {
+	HRESULT InitProgram(_In_ RendererDX_t *pRenderer, _In_z_ LPCTSTR szProgramName, _Out_ ProgramDX_t *pProgram) {
 		HRESULT hr;
 
 		// compile the vertex shader
@@ -103,7 +103,7 @@ namespace DXF {
 		if (pProgram->pBlinnPhong) { pProgram->pBlinnPhong->Release(); }
 	}
 
-	HRESULT InitConstBuffers(_Out_ ConstantsDX_t *pConstants, _In_ RendererDX_t *pRenderer) {
+	HRESULT InitConstBuffers(_In_ RendererDX_t *pRenderer, _Out_ ConstantsDX_t *pConstants) {
 		HRESULT hr;
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
@@ -176,7 +176,7 @@ namespace DXF {
 		LPSTR szEntryPointA = (LPSTR)LocalAlloc(LMEM_ZEROINIT, size);
 		assert(szEntryPointA != NULL);
 
-		hr = UTF8toANSI(szEntryPointA, szEntryPoint, (int)size);
+		hr = UTF8toANSI(szEntryPoint, (int)size, szEntryPointA);
 		if (FAILED(hr)) {
 			DXF_ERROR_BOX();
 		}
@@ -185,7 +185,7 @@ namespace DXF {
 		LPSTR szShaderModelA = (LPSTR)LocalAlloc(LMEM_ZEROINIT, size);
 		assert(szShaderModelA != NULL);
 
-		hr = UTF8toANSI(szShaderModelA, szShaderModel, (int)size);
+		hr = UTF8toANSI(szShaderModel, (int)size, szShaderModelA);
 		if (FAILED(hr)) {
 			DXF_ERROR_BOX();
 		}

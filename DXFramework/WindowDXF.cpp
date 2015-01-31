@@ -83,7 +83,7 @@ namespace DXF {
 		return rv;
 	}
 
-	HRESULT InitWindowW32(_Out_ WindowW32_t *pWin, _In_ HINSTANCE hInst, _In_z_ LPCTSTR szName, _In_ SIZE winSize, _In_opt_ HWND hParent) {
+	HRESULT InitWindowW32(_In_ HINSTANCE hInst, _In_z_ LPCTSTR szName, _In_ SIZE winSize, _In_opt_ HWND hParent, _Out_ WindowW32_t *pWin) {
 		// initialize with defaults
 		pWin->handle = NULL;
 		pWin->parentHandle = hParent;
@@ -148,7 +148,12 @@ namespace DXF {
 			return E_FAIL;
 		}
 
+		//
+		// TODO: determine why the title text is not getting shown by default and fix
+		//
+		SetWindowText(pWin->handle, pWin->title);
 		ShowWindow(pWin->handle, SW_SHOW);
+
 		return S_OK;
 	}
 

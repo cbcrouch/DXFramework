@@ -17,13 +17,13 @@ namespace DXF {
 	// TODO: store useful params in struct like max anisotropy to avoid having
 	//       to get it from Direct3D
 	//
-	typedef struct SamplerDX_t {
+	struct SamplerDX_t {
 
 		//...
 
 		ID3D11SamplerState*        pSamplerState;
-	} SamplerDX_t;
+	};
 
-	HRESULT InitSampler(_Out_ SamplerDX_t *pSampler, _In_ RendererDX_t *pRenderer);
+	HRESULT InitSampler(_In_ RendererDX_t *pRenderer, _Out_ SamplerDX_t *pSampler);
 	void DestroySampler(_Inout_ SamplerDX_t *pSampler);
 };

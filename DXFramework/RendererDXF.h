@@ -14,7 +14,7 @@
 
 namespace DXF {
 
-	typedef struct RendererDX_t {
+	struct RendererDX_t {
 		//
 		// TODO: populate members for intializing device or pass in a configuration struct containing
 		//       init members and leave the device an opaque struct
@@ -67,10 +67,10 @@ namespace DXF {
 		ID3D11RenderTargetView  *pRenderTargetView;
 		ID3D11DepthStencilView  *pDepthStencilView;
 
-	} RendererDX_t;
+	};
 
 
-	HRESULT InitRenderer(_Out_ RendererDX_t *pRenderer, _In_ HWND hwnd);
+	HRESULT InitRenderer(_In_ HWND hwnd, _Out_ RendererDX_t *pRenderer);
 	void DestroyRenderer(_Inout_ RendererDX_t *pRenderer);
 
 	void PresentView(_In_ RendererDX_t *pRenderer);

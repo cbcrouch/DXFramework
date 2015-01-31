@@ -39,10 +39,10 @@
 //       that is integrated into the task subsystem
 //
 
-typedef enum WINDOW_EVENT : unsigned int {
+enum WINDOW_EVENT : unsigned int {
 	WND_CLOSE = 0,
 	WND_CREATE
-} WINDOW_EVENT;
+};
 
 //
 // TODO: make these of TCHAR type
@@ -95,9 +95,9 @@ if (hWaitObject != NULL) {
 //
 // TODO: refer to notes at the top of DXFramework.cpp and get together a candidate list of events
 //
-typedef enum RENDER_EVENT : unsigned int {
+enum RENDER_EVENT : unsigned int {
 	FRAME_READY = 0
-} RENDER_EVENT;
+};
 
 //
 // TODO: make this of type TCHAR
@@ -106,17 +106,17 @@ const wchar_t* RENDER_EVENT_STR[] = {
 	L"RenderFrameEvt"
 };
 
-typedef enum CONTROL_EVENT : unsigned int {
+enum CONTROL_EVENT : unsigned int {
 	PAUSE_SIM = 0
-} CONTROL_EVENT;
+};
 
 const wchar_t* CONTROL_EVENT_STR[] = {
 	L"PauseSimEvt"
 };
 
-typedef enum SYSTEM_EVENT : unsigned int {
+enum SYSTEM_EVENT : unsigned int {
 	SYS_EXIT = 0
-} SYSTEM_EVENT;
+};
 
 const wchar_t* SYS_EVENT_STR[] = {
 	L"SysExitEvt"

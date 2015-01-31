@@ -29,7 +29,7 @@ namespace DXF {
 		LPWSTR lpszFunctionW = (LPWSTR)HeapAlloc(hProcHeap, HEAP_ZERO_MEMORY, size);
 		assert(lpszFunctionW != NULL);
 
-		HRESULT hr = ANSItoUTF8(lpszFunctionW, lpszFunction, (int)size);
+		HRESULT hr = ANSItoUTF8(lpszFunction, (int)size, lpszFunctionW);
 		switch (hr) {
 			case ERROR_INSUFFICIENT_BUFFER: OutputDebugString(TEXT("ErrorBox: MultiByteToWideChar failed with error ERROR_INSUFFICIENT_BUFFER\n")); break;
 			case ERROR_INVALID_FLAGS: OutputDebugString(TEXT("ErrorBox: MultiByteToWideChar failed with error ERROR_INVALID_FLAGS\n")); break;
@@ -85,11 +85,11 @@ namespace DXF {
 		return WideCharToMultiByte(CP_UTF8, 0, lpszUtf, -1, NULL, 0, NULL, FALSE);
 	}
 
-	HRESULT ANSItoUTF8(_Out_ LPWSTR lpszUtf, _In_ LPCSTR lpszAnsi, _In_ const int size) {
+	HRESULT ANSItoUTF8(_In_ LPCSTR lpszAnsi, _In_ const int size, _Out_ LPWSTR lpszUtf) {
 		return MultiByteToWideChar(CP_UTF8, 0, lpszAnsi, -1, lpszUtf, size);
 	}
 
-	HRESULT UTF8toANSI(_Out_ LPSTR lpszAnsi, _In_ LPCWSTR lpszUtf, _In_ const int size) {
+	HRESULT UTF8toANSI(_In_ LPCWSTR lpszUtf, _In_ const int size, _Inout_ LPSTR lpszAnsi) {
 		return WideCharToMultiByte(CP_UTF8, 0, lpszUtf, -1, lpszAnsi, size, NULL, FALSE);
 	}
 
@@ -97,54 +97,48 @@ namespace DXF {
 		FileMemory_t fm;
 		ZeroMemory(&fm, sizeof(FileMemory_t));
 
-
-		//
-		// TODO: should this use FILE_READ_DATA or GENERIC_READ ??
-		//
-		//HANDLE hFile = CreateFile(fileName, FILE_READ_DATA, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 		HANDLE hFile = CreateFile(fileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-
-
 		if (hFile == INVALID_HANDLE_VALUE) {
 			DXF_ERROR_BOX();
+			return fm;
 		}
-
-		//
-		// TODO: need to restructure how the error checking works in order to make this less branchy and generally cleaner
-		//
 
 		// NOTE: GetFileSize is deprecated, use GetFileSizeEx instead
 		LARGE_INTEGER fileSize;
 		if (!GetFileSizeEx(hFile, &fileSize)) {
 			DXF_ERROR_BOX();
-		}
-		else {
-			//void *pMemory = VirtualAlloc(fileSize.QuadPart);
-			void *pMemory = malloc(fileSize.QuadPart);
-			if (pMemory) {
-				DWORD bytesRead = 0;
-				//
-				// TODO: defines for max values and an inline safe truncate function
-				//
-				assert(fileSize.QuadPart < 0xffffffff);
-				DWORD fileSize32 = (DWORD)fileSize.QuadPart;
-
-				if (!ReadFile(hFile, pMemory, fileSize32, &bytesRead, NULL)) {
-					if (pMemory) {
-						free(pMemory);
-						pMemory = NULL;
-					}
-					DXF_ERROR_BOX();
-				}
-
-				assert(fileSize32 == bytesRead);
-			}
-
-			fm.fileSize = fileSize;
-			fm.data = pMemory;
+			CloseHandle(hFile);
+			return fm;
 		}
 
-		CloseHandle(hFile);
+		void *pMemory = malloc((size_t)fileSize.QuadPart);
+		assert(pMemory != NULL);
+
+
+		//
+		// TODO: defines for max values and an inline safe truncate function
+		//
+		assert(fileSize.QuadPart < 0xffffffff);
+		DWORD fileSize32 = (DWORD)fileSize.QuadPart;
+
+
+		DWORD bytesRead = 0;
+		if (!ReadFile(hFile, pMemory, fileSize32, &bytesRead, NULL)) {
+			DXF_ERROR_BOX();
+			CloseHandle(hFile);
+			free(pMemory);
+			return fm;
+		}
+		assert(fileSize32 == bytesRead);
+
+		if (!CloseHandle(hFile)) {
+			DXF_ERROR_BOX();
+			return fm;
+		}
+
+		fm.fileSize = fileSize;
+		fm.data = pMemory;
+
 		return fm;
 	}
 

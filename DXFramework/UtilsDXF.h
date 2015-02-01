@@ -39,10 +39,10 @@ namespace DXF {
 	void ErrorBox(LPSTR lpszFunction); // warns of error using a message box
 	void ErrorExit(LPSTR lpszFunction); // displays error in message box then exits
 
-	SIZE_T SizeNeededInUTF8(_In_ LPCSTR lpszAnsi);
-	SIZE_T SizeNeededInANSI(_In_ LPCWSTR lpszUtf);
-	HRESULT ANSItoUTF8(_In_ LPCSTR lpszAnsi, _In_ const int size, _Out_ LPWSTR lpszUtf);
-	HRESULT UTF8toANSI(_In_ LPCWSTR lpszUtf, _In_ const int size, _Inout_ LPSTR lpszAnsi);
+	SIZE_T SizeNeededInUTF8(LPCSTR lpszAnsi);
+	SIZE_T SizeNeededInANSI(LPCWSTR lpszUtf);
+	HRESULT ANSItoUTF8(LPCSTR lpszAnsi, const int size, LPWSTR lpszUtf);
+	HRESULT UTF8toANSI(LPCWSTR lpszUtf, const int size, LPSTR lpszAnsi);
 
 	//inline uint32_t SafeTruncate(uint64_t value) {
 	//	assert(value <= 0xffffffff);
@@ -55,8 +55,8 @@ namespace DXF {
 		LPVOID data;
 	};
 
-	FileMemory_t ReadFileIntoMemory(_In_ LPCTSTR fileName);
-	void DestroyFileMemory(_Inout_ FileMemory_t *pFileMemory);
+	FileMemory_t ReadFileIntoMemory(LPCTSTR fileName);
+	void DestroyFileMemory(FileMemory_t* pFileMemory);
 
 	struct OperationTimer_t {
 		LARGE_INTEGER frequency;
@@ -71,14 +71,14 @@ namespace DXF {
 		int64_t megaCyclesElapsed;
 	};
 
-	void InitOperationTimer(OperationTimer_t *pTimer);  // gets the frequency and then sets start values
-	void ResetOperationTimer(OperationTimer_t *pTimer); // will set the start values to current time
+	void InitOperationTimer(OperationTimer_t* pTimer);  // gets the frequency and then sets start values
+	void ResetOperationTimer(OperationTimer_t* pTimer); // will set the start values to current time
 
 	// starting point which to base measurements off of
-	void Mark(OperationTimer_t *pTimer);
+	void Mark(OperationTimer_t* pTimer);
 
 	// calculate and return an OperationSpan_t (won't modify the last values in the timer)
-	OperationSpan_t Measure(OperationTimer_t *pTimer);
+	OperationSpan_t Measure(OperationTimer_t* pTimer);
 
 	//
 	// TODO: add another timer based utility that is a circular buffer of

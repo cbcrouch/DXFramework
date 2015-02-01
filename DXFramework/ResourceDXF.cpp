@@ -9,17 +9,17 @@
 
 namespace DXF {
 
-	HRESULT GenerateGridXZ(_In_ RendererDX_t *pRenderer, const int32_t extent, _Out_ EntityDX_t *pEntity) {
+	HRESULT GenerateGridXZ(RendererDX_t* pRenderer, const int32_t extent, EntityDX_t* pEntity) {
 		pEntity->pMesh = (MeshDX_t *)malloc(sizeof(MeshDX_t));
-		assert(pEntity->pMesh != NULL);
+		assert(pEntity->pMesh != nullptr);
 
 		int numVertices = (extent * 8) + 4;
 		pEntity->pMesh->numVertices = numVertices;
 
 		pEntity->pMesh->pVertices = (XMVertex_t *)malloc(numVertices * sizeof(XMVertex_t));
 		pEntity->pMesh->pIndices = (WORD *)malloc(numVertices * sizeof(WORD));
-		assert(pEntity->pMesh->pVertices != NULL);
-		assert(pEntity->pMesh->pIndices != NULL);
+		assert(pEntity->pMesh->pVertices != nullptr);
+		assert(pEntity->pMesh->pIndices != nullptr);
 
 		// set vertex data
 		int index = 0;
@@ -41,37 +41,18 @@ namespace DXF {
 
 
 
-		HRESULT hr;
-		D3D11_BUFFER_DESC bd;
-		D3D11_SUBRESOURCE_DATA initData;
+		D3D11_BUFFER_DESC bd = {};
+		D3D11_SUBRESOURCE_DATA initData = {};
 
 		// create vertex buffer
-		ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
 		bd.Usage = D3D11_USAGE_DEFAULT;
 		bd.ByteWidth = sizeof(XMVertex_t) * numVertices;
 		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		bd.CPUAccessFlags = 0;
 
-
-		//
-		// TODO: value initialization, zero memory sizeof(var), or zero memory sizeof(type) ??
-		//       really need to pick one as standard for the project
-		//
-		//initData = {};
-		//ZeroMemory(&initData, sizeof(initData));
-
-		//
-		// value initialization is much faster than zero memory for debug builds but for release builds
-		// they are for all intents and purposes identical in speed
-		//
-		// it is still important to keep debug builds running fast, preferrably as close to release builds
-		// as possible so therefore should favor value initialization over zero memory
-		//
-
-		ZeroMemory(&initData, sizeof(D3D11_SUBRESOURCE_DATA));
+		initData = {};
 		initData.pSysMem = pEntity->pMesh->pVertices;
-
-		hr = pRenderer->pDevice->CreateBuffer(&bd, &initData, &(pEntity->primitives.pVertexBuffer));
+		HRESULT hr = pRenderer->pDevice->CreateBuffer(&bd, &initData, &(pEntity->primitives.pVertexBuffer));
 		if (FAILED(hr)) {
 			return hr;
 		}
@@ -91,13 +72,13 @@ namespace DXF {
 
 
 		// create index buffer
-		ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
+		bd = {};
 		bd.Usage = D3D11_USAGE_DEFAULT;
 		bd.ByteWidth = sizeof(WORD) * numVertices;
 		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		bd.CPUAccessFlags = 0;
 
-		ZeroMemory(&initData, sizeof(D3D11_SUBRESOURCE_DATA));
+		initData = {};
 		initData.pSysMem = pEntity->pMesh->pIndices;
 
 		hr = pRenderer->pDevice->CreateBuffer(&bd, &initData, &(pEntity->primitives.pIndexBuffer));
@@ -122,8 +103,7 @@ namespace DXF {
 			128, 128, 128, 255,    255, 255, 255, 255
 		};
 
-		D3D11_TEXTURE2D_DESC desc;
-		ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
+		D3D11_TEXTURE2D_DESC desc = {};
 		desc.Width = 2;
 		desc.Height = 2;
 		desc.MipLevels = 1;
@@ -136,7 +116,7 @@ namespace DXF {
 		desc.MiscFlags = 0;
 
 		// using D3D11_SUBRESOURCE_DATA to init the texture with in the create call
-		D3D11_SUBRESOURCE_DATA initialData;
+		D3D11_SUBRESOURCE_DATA initialData = {};
 		initialData.pSysMem = defaultTex;
 		initialData.SysMemPitch = 8; // distance in bytes from beginning of one line of texture to the next
 		initialData.SysMemSlicePitch = 0; // distance in bytes from the beginning of one depth level to the next
@@ -147,15 +127,17 @@ namespace DXF {
 		return S_OK;
 	}
 
-	void DestroyGridXZ(_Inout_ EntityDX_t *pEntity) {
+	void DestroyGridXZ(EntityDX_t* pEntity) {
 
-		if (pEntity->pTexture) { pEntity->pTexture->Release(); pEntity->pTexture = NULL; }
+		if (pEntity->pTexture) { pEntity->pTexture->Release(); pEntity->pTexture = nullptr; }
 
-		if (pEntity->pMesh->pIndices) { free(pEntity->pMesh->pIndices); pEntity->pMesh->pIndices = NULL; }
-		if (pEntity->pMesh->pVertices) { free(pEntity->pMesh->pVertices); pEntity->pMesh->pVertices = NULL; }
+		if (pEntity->pMesh->pIndices) { free(pEntity->pMesh->pIndices); pEntity->pMesh->pIndices = nullptr; }
+		if (pEntity->pMesh->pVertices) { free(pEntity->pMesh->pVertices); pEntity->pMesh->pVertices = nullptr; }
 
-		if (pEntity->pMesh) { free(pEntity->pMesh); pEntity->pMesh = NULL; }
+		if (pEntity->pMesh) { free(pEntity->pMesh); pEntity->pMesh = nullptr; }
 	}
+
+
 
 	HRESULT LoadEntity(CONST_PTR_VAL(RendererDX_t*) pRenderer, LPCTSTR fileName, CONST_PTR(EntityDX_t*) pEntity) {
 	//HRESULT LoadEntity(const RendererDX_t* const pRenderer, LPCTSTR fileName, EntityDX_t* const pEntity) {
@@ -172,15 +154,17 @@ namespace DXF {
 		return hr;
 	}
 
+
+
 	//
 	// TODO: update DestroyEntity call to clean up all entity resource
 	//
-	void DestroyEntity(EntityDX_t *pEntity) {
+	void DestroyEntity(EntityDX_t* pEntity) {
 		if (pEntity->pMeshSDK) { delete(pEntity->pMeshSDK); }
 	}
 
 	MeshBounds_t CalcBoundingBox(const EntityDX_t* const pEntity) {
-		MeshBounds_t bounds;
+		MeshBounds_t bounds = {};
 		for (UINT iMesh = 0; iMesh < pEntity->pMeshSDK->GetNumMeshes(); ++iMesh) {
 			for (UINT iVB = 0; iVB < pEntity->pMeshSDK->GetNumVBs(); ++iVB) {
 
@@ -260,18 +244,17 @@ namespace DXF {
 		return bounds;
 	}
 
-	HRESULT InitPrimitives(_In_ MeshDX_t *pMesh, _In_ RendererDX_t *pRenderer, _Out_ PrimitivesDX_t *pPrimitives) {
+	HRESULT InitPrimitives(MeshDX_t* pMesh, RendererDX_t* pRenderer, PrimitivesDX_t* pPrimitives) {
 		HRESULT hr;
-		D3D11_BUFFER_DESC bd;
-		D3D11_SUBRESOURCE_DATA initData;
+		D3D11_BUFFER_DESC bd = {};
+		D3D11_SUBRESOURCE_DATA initData = {};
 
 		// create vertex buffer
-		ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
 		bd.Usage = D3D11_USAGE_DEFAULT;
 		bd.ByteWidth = sizeof(XMVertex_t) * pMesh->numVertices;
 		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		bd.CPUAccessFlags = 0;
-		ZeroMemory(&initData, sizeof(D3D11_SUBRESOURCE_DATA));
+
 		initData.pSysMem = pMesh->pVertices;
 		hr = pRenderer->pDevice->CreateBuffer(&bd, &initData, &(pPrimitives->pVertexBuffer));
 		if (FAILED(hr)) {
@@ -284,12 +267,13 @@ namespace DXF {
 		pRenderer->pImmediateContext->IASetVertexBuffers(0, 1, &(pPrimitives->pVertexBuffer), &stride, &offset);
 
 		// create index buffer
-		ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
+		bd = {};
 		bd.Usage = D3D11_USAGE_DEFAULT;
 		bd.ByteWidth = sizeof(WORD) * pMesh->numIndices;
 		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		bd.CPUAccessFlags = 0;
-		ZeroMemory(&initData, sizeof(D3D11_SUBRESOURCE_DATA));
+
+		initData = {};
 		initData.pSysMem = pMesh->pIndices;
 		hr = pRenderer->pDevice->CreateBuffer(&bd, &initData, &(pPrimitives->pIndexBuffer));
 		if (FAILED(hr)) {
@@ -305,14 +289,14 @@ namespace DXF {
 		return S_OK;
 	}
 
-	void DestroyPrimitives(_Inout_ PrimitivesDX_t *pPrimitives) {
+	void DestroyPrimitives(PrimitivesDX_t* pPrimitives) {
 		if (pPrimitives->pIndexBuffer) { pPrimitives->pIndexBuffer->Release(); }
 		if (pPrimitives->pVertexBuffer) { pPrimitives->pVertexBuffer->Release(); }
 	}
 
 	// NOTE: normally init transform would check some saved data and init to the last saved
 	//       values or if they don't exist use some defaults or ini/CLI values
-	void InitViewVolume(_In_ RendererDX_t *pRenderer, _Out_ ViewVolume_t *pViewVolume) {
+	void InitViewVolume(RendererDX_t* pRenderer, ViewVolume_t* pViewVolume) {
 		// initialize world matrix
 		//pviewVolume->world = XMMatrixIdentity();
 

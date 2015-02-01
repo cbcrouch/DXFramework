@@ -8,13 +8,11 @@
 #include "SamplerDXF.h"
 
 namespace DXF {
-	HRESULT InitSampler(_In_ RendererDX_t *pRenderer, _Out_ SamplerDX_t *pSampler) {
+	HRESULT InitSampler(RendererDX_t* pRenderer, SamplerDX_t* pSampler) {
 		HRESULT hr = S_OK;
 
 		// create the sampler state
-		D3D11_SAMPLER_DESC sampDesc;
-		ZeroMemory(&sampDesc, sizeof(D3D11_SAMPLER_DESC));
-
+		D3D11_SAMPLER_DESC sampDesc = {};
 		sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -32,7 +30,7 @@ namespace DXF {
 		return hr;
 	}
 
-	void DestroySampler(_Inout_ SamplerDX_t *pSampler) {
+	void DestroySampler(SamplerDX_t* pSampler) {
 		if (pSampler->pSamplerState) { pSampler->pSamplerState->Release(); }
 	}
 };

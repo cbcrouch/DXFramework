@@ -40,10 +40,10 @@ namespace DXF {
 		HANDLE hWndCloseEvt;
 	};
 
-	HRESULT InitWindowW32(_In_ HINSTANCE hInst, _In_z_ LPCTSTR szName, _In_ SIZE winSize, _In_opt_ HWND hParent, _Out_ WindowW32_t *pWin);
+	HRESULT InitWindowW32(HINSTANCE hInst, LPCTSTR szName, SIZE winSize, HWND hParent, WindowW32_t* pWin);
 
-	HRESULT CreateWindowW32(_Inout_ WindowW32_t *pWin);
-	void DestroyWindowW32(_Inout_ WindowW32_t *pWin);
+	HRESULT CreateWindowW32(WindowW32_t* pWin);
+	void DestroyWindowW32(WindowW32_t* pWin);
 
-	LRESULT CALLBACK WindowProcedure(_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wParam, _In_ LPARAM lParam);
+	LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 };

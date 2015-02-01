@@ -70,13 +70,13 @@ namespace DXF {
 	};
 
 
-	HRESULT InitProgram(_In_ RendererDX_t *pRenderer, _In_z_ LPCTSTR szProgramName, _Out_ ProgramDX_t *pProgram);
-	void DestroyProgram(_Inout_ ProgramDX_t *pProgram);
+	HRESULT InitProgram(RendererDX_t* pRenderer, LPCTSTR szProgramName, ProgramDX_t* pProgram);
+	void DestroyProgram(ProgramDX_t* pProgram);
 
-	HRESULT InitConstBuffers(_In_ RendererDX_t *pRenderer, _Out_ ConstantsDX_t *pConstants);
-	void DestroyConstBuffers(_Inout_ ConstantsDX_t *pConstants);
+	HRESULT InitConstBuffers(RendererDX_t* pRenderer, ConstantsDX_t* pConstants);
+	void DestroyConstBuffers(ConstantsDX_t* pConstants);
 
-	HRESULT CompileShaderFromFile(_In_z_ LPCTSTR szFilename, _In_z_ LPCTSTR szEntryPoint, _In_z_ LPCTSTR szShaderModel, _Outptr_ ID3DBlob **ppBlobOut);
+	HRESULT CompileShaderFromFile(LPCTSTR szFilename, LPCTSTR szEntryPoint, LPCTSTR szShaderModel, ID3DBlob** ppBlobOut);
 
 	//
 	// TODO: implement load shader from file to load precompiled blobs

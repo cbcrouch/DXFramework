@@ -25,11 +25,11 @@
 //
 // TODO: remove globals after devising good method for submitting data to render thread
 //
-DXF::ProgramDX_t hlslProgram;
-DXF::ConstantsDX_t hlslConstants;
+DXF::ProgramDX_t g_hlslProgram;
+DXF::ConstantsDX_t g_hlslConstants;
 
-DXF::PrimitivesDX_t meshPrimitives;
-DXF::SamplerDX_t hlslSampler;
+DXF::PrimitivesDX_t g_meshPrimitives;
+DXF::SamplerDX_t g_hlslSampler;
 
 CDXUTSDKMesh g_mesh11;
 
@@ -83,11 +83,11 @@ unsigned __stdcall renderThread(void *pArgs)
 	// update constant resources that won't vary (or vary much) from frame to frame
 	DXF::CBNeverChanges_t cbNeverChanges;
 	cbNeverChanges.view = XMMatrixTranspose(viewVolume.view);
-	pRenderer->pImmediateContext->UpdateSubresource(hlslConstants.pNeverChanges, 0, NULL, &cbNeverChanges, 0, 0);
+	pRenderer->pImmediateContext->UpdateSubresource(g_hlslConstants.pNeverChanges, 0, NULL, &cbNeverChanges, 0, 0);
 
 	DXF::CBChangeOnResize_t cbChangeOnResize;
 	cbChangeOnResize.projection = XMMatrixTranspose(viewVolume.projection);
-	pRenderer->pImmediateContext->UpdateSubresource(hlslConstants.pChangeOnResize, 0, NULL, &cbChangeOnResize, 0, 0);
+	pRenderer->pImmediateContext->UpdateSubresource(g_hlslConstants.pChangeOnResize, 0, NULL, &cbChangeOnResize, 0, 0);
 
 
 	float t = 0.0f;
@@ -161,19 +161,19 @@ unsigned __stdcall renderThread(void *pArgs)
 
 		// update constant buffer resources
 		cb.world = XMMatrixTranspose(mCenterMesh * timedRotation); // applying hardcoded rotation transformation, this should be properly replaced
-		pRenderer->pImmediateContext->UpdateSubresource(hlslConstants.pChangesEveryFrame, 0, NULL, &cb, 0, 0);
+		pRenderer->pImmediateContext->UpdateSubresource(g_hlslConstants.pChangesEveryFrame, 0, NULL, &cb, 0, 0);
 
 		// vertex shader setup
-		pRenderer->pImmediateContext->VSSetShader(hlslProgram.pVertexShader, NULL, 0);
-		pRenderer->pImmediateContext->VSSetConstantBuffers(0, 1, &(hlslConstants.pNeverChanges));
-		pRenderer->pImmediateContext->VSSetConstantBuffers(1, 1, &(hlslConstants.pChangeOnResize));
-		pRenderer->pImmediateContext->VSSetConstantBuffers(2, 1, &(hlslConstants.pChangesEveryFrame));
+		pRenderer->pImmediateContext->VSSetShader(g_hlslProgram.pVertexShader, NULL, 0);
+		pRenderer->pImmediateContext->VSSetConstantBuffers(0, 1, &(g_hlslConstants.pNeverChanges));
+		pRenderer->pImmediateContext->VSSetConstantBuffers(1, 1, &(g_hlslConstants.pChangeOnResize));
+		pRenderer->pImmediateContext->VSSetConstantBuffers(2, 1, &(g_hlslConstants.pChangesEveryFrame));
 
 		// pixel shader setup
-		pRenderer->pImmediateContext->PSSetShader(hlslProgram.pPixelShader, NULL, 0);
+		pRenderer->pImmediateContext->PSSetShader(g_hlslProgram.pPixelShader, NULL, 0);
 
 		// sampler setup
-		pRenderer->pImmediateContext->PSSetSamplers(0, 1, &(hlslSampler.pSamplerState));
+		pRenderer->pImmediateContext->PSSetSamplers(0, 1, &(g_hlslSampler.pSamplerState));
 
 
 
@@ -263,14 +263,14 @@ int APIENTRY wWinMain (
 	UNREFERENCED_PARAMETER(lpCmdLine);
 	UNREFERENCED_PARAMETER(nCmdShow);
 
-	HRESULT hr;
-	HANDLE hRenderThread;
-	unsigned int threadId;
+	HRESULT hr = {};
+	HANDLE hRenderThread = NULL;
+	unsigned int threadId = 0;
 
-	DXF::WindowW32_t dxWin;
-	DXF::RendererDX_t dxRenderer;
+	DXF::WindowW32_t dxWin = {};
+	DXF::RendererDX_t dxRenderer = {};
 
-	SIZE windowSize;
+	SIZE windowSize = {};
 	windowSize.cx = 1280;
 	windowSize.cy = 720;
 
@@ -315,19 +315,13 @@ int APIENTRY wWinMain (
 	hr = InitRenderer(dxWin.handle, &dxRenderer);
 	DXF_CHECK_HRESULT(hr);
 
-
-	// NOTE: for structs that contain pointers, ZeroMemory to init all to NULL
-
-	ZeroMemory(&hlslProgram, sizeof(DXF::ProgramDX_t));
-	hr = InitProgram(&dxRenderer, TEXT("Simple.fx"), &hlslProgram);
+	hr = InitProgram(&dxRenderer, TEXT("Simple.fx"), &g_hlslProgram);
 	DXF_CHECK_HRESULT(hr);
 
-	ZeroMemory(&hlslConstants, sizeof(DXF::ConstantsDX_t));
-	hr = InitConstBuffers(&dxRenderer, &hlslConstants);
+	hr = InitConstBuffers(&dxRenderer, &g_hlslConstants);
 	DXF_CHECK_HRESULT(hr);
 
-	ZeroMemory(&hlslSampler, sizeof(DXF::SamplerDX_t));
-	hr = InitSampler(&dxRenderer, &hlslSampler);
+	hr = InitSampler(&dxRenderer, &g_hlslSampler);
 	DXF_CHECK_HRESULT(hr);
 
 
@@ -501,9 +495,9 @@ int APIENTRY wWinMain (
 	g_mesh11.Destroy();
 
 
-	DestroyProgram(&hlslProgram);
-	DestroyConstBuffers(&hlslConstants);
-	DestroySampler(&hlslSampler);
+	DestroyProgram(&g_hlslProgram);
+	DestroyConstBuffers(&g_hlslConstants);
+	DestroySampler(&g_hlslSampler);
 
 	// NOTE: window is destroyed when it receives a WM_CLOSE message
 	DXF::DestroyRenderer(&dxRenderer);

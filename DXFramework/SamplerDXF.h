@@ -18,12 +18,9 @@ namespace DXF {
 	//       to get it from Direct3D
 	//
 	struct SamplerDX_t {
-
-		//...
-
 		ID3D11SamplerState*        pSamplerState;
 	};
 
-	HRESULT InitSampler(_In_ RendererDX_t *pRenderer, _Out_ SamplerDX_t *pSampler);
-	void DestroySampler(_Inout_ SamplerDX_t *pSampler);
+	HRESULT InitSampler(RendererDX_t* pRenderer, SamplerDX_t* pSampler);
+	void DestroySampler(SamplerDX_t* pSampler);
 };

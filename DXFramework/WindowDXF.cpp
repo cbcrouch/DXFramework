@@ -9,7 +9,7 @@
 
 namespace DXF {
 
-	LRESULT CALLBACK WindowProcedure(_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wParam, _In_ LPARAM lParam) {
+	LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		LRESULT rv = 0;
 		WindowW32_t *pWin = (WindowW32_t *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
@@ -83,7 +83,7 @@ namespace DXF {
 		return rv;
 	}
 
-	HRESULT InitWindowW32(_In_ HINSTANCE hInst, _In_z_ LPCTSTR szName, _In_ SIZE winSize, _In_opt_ HWND hParent, _Out_ WindowW32_t *pWin) {
+	HRESULT InitWindowW32(HINSTANCE hInst, LPCTSTR szName, SIZE winSize, HWND hParent, WindowW32_t* pWin) {
 		// initialize with defaults
 		pWin->handle = NULL;
 		pWin->parentHandle = hParent;
@@ -131,7 +131,7 @@ namespace DXF {
 		return S_OK;
 	}
 
-	HRESULT CreateWindowW32(_Inout_ WindowW32_t *pWin) {
+	HRESULT CreateWindowW32(WindowW32_t* pWin) {
 		if (!RegisterClassEx(&(pWin->winClass))) {
 			return E_FAIL;
 		}
@@ -157,7 +157,7 @@ namespace DXF {
 		return S_OK;
 	}
 
-	void DestroyWindowW32(_Inout_ WindowW32_t *pWin) {
+	void DestroyWindowW32(WindowW32_t* pWin) {
 		// NOTE: this is where any application data in the WindowW32_t struct would be cleaned up
 		CloseHandle(pWin->hWndCloseEvt);
 

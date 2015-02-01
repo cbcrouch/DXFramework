@@ -20,8 +20,14 @@
 // Target Output As Content: Yes
 
 
+
+
 // NOTE: using the follow defines to give some context to the aligned byte offsets used in the shader
 //static_assert(sizeof(float) == 4, "assert failed, sizeof(float) != 4 bytes");
+
+//
+// TODO: use static assert
+//
 
 C_ASSERT(sizeof(float) == 4);
 
@@ -29,9 +35,11 @@ C_ASSERT(sizeof(float) == 4);
 #define XMFLOAT3_SIZE 12
 #define XMFLOAT4_SIZE 16
 
+
+
 namespace DXF {
 
-	HRESULT InitProgram(_In_ RendererDX_t *pRenderer, _In_z_ LPCTSTR szProgramName, _Out_ ProgramDX_t *pProgram) {
+	HRESULT InitProgram(RendererDX_t* pRenderer, LPCTSTR szProgramName, ProgramDX_t* pProgram) {
 		HRESULT hr;
 
 		// compile the vertex shader
@@ -95,7 +103,7 @@ namespace DXF {
 		return S_OK;
 	}
 
-	void DestroyProgram(_Inout_ ProgramDX_t *pProgram) {
+	void DestroyProgram(ProgramDX_t* pProgram) {
 		if (pProgram->pInputLayout) { pProgram->pInputLayout->Release(); }
 		if (pProgram->pVertexShader) { pProgram->pVertexShader->Release(); }
 		if (pProgram->pPixelShader) { pProgram->pPixelShader->Release(); }
@@ -103,10 +111,9 @@ namespace DXF {
 		if (pProgram->pBlinnPhong) { pProgram->pBlinnPhong->Release(); }
 	}
 
-	HRESULT InitConstBuffers(_In_ RendererDX_t *pRenderer, _Out_ ConstantsDX_t *pConstants) {
+	HRESULT InitConstBuffers(RendererDX_t* pRenderer, ConstantsDX_t* pConstants) {
 		HRESULT hr;
-		D3D11_BUFFER_DESC bd;
-		ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
+		D3D11_BUFFER_DESC bd = {};
 
 		// setup three constant buffers
 		bd.Usage = D3D11_USAGE_DEFAULT;
@@ -142,7 +149,7 @@ namespace DXF {
 		return S_OK;
 	}
 
-	void DestroyConstBuffers(_Inout_ ConstantsDX_t *pConstants) {
+	void DestroyConstBuffers(ConstantsDX_t* pConstants) {
 		if (pConstants->pChangeOnResize) { pConstants->pChangeOnResize->Release(); }
 		if (pConstants->pChangesEveryFrame) { pConstants->pChangesEveryFrame->Release(); }
 		if (pConstants->pNeverChanges) { pConstants->pNeverChanges->Release(); }
@@ -159,7 +166,7 @@ namespace DXF {
 	// NOTE: when the cso (compiled shader object) file is read the resulting read is the compiled byte arrays
 	//       i.e. the blob which should match the ID3DBlob output from D3DCompileFromFile
 
-	HRESULT CompileShaderFromFile(_In_z_ LPCTSTR szFilename, _In_z_ LPCTSTR szEntryPoint, _In_z_ LPCTSTR szShaderModel, _Outptr_ ID3DBlob **ppBlobOut) {
+	HRESULT CompileShaderFromFile(LPCTSTR szFilename, LPCTSTR szEntryPoint, LPCTSTR szShaderModel, ID3DBlob** ppBlobOut) {
 		HRESULT hr = S_OK;
 
 		DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
@@ -169,7 +176,7 @@ namespace DXF {
 		dwShaderFlags |= D3DCOMPILE_DEBUG;
 #endif
 
-		ID3DBlob *pErrorBlob = NULL;
+		ID3DBlob* pErrorBlob = NULL;
 
 #ifdef _UNICODE
 		SIZE_T size = SizeNeededInANSI(szEntryPoint);

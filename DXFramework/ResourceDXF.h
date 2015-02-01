@@ -117,6 +117,67 @@ namespace DXF {
 		//DataMapDX_t map_bump; // or broken out into: bump, disp, decalT
 	};
 
+	//
+	// TODO: the following structs/functions are the extent to which the sdkmesh file
+	//       format supports animations
+	//
+/*
+	struct SDKANIMATION_FILE_HEADER
+	{
+		UINT Version;
+		BYTE IsBigEndian;
+		UINT FrameTransformType;
+		UINT NumFrames;
+		UINT NumAnimationKeys;
+		UINT AnimationFPS;
+		UINT64 AnimationDataSize;
+		UINT64 AnimationDataOffset;
+	};
+
+	struct SDKANIMATION_DATA
+	{
+		DirectX::XMFLOAT3 Translation;
+		DirectX::XMFLOAT4 Orientation;
+		DirectX::XMFLOAT3 Scaling;
+	};
+
+	struct SDKANIMATION_FRAME_DATA
+	{
+		char FrameName[MAX_FRAME_NAME];
+		union
+		{
+			UINT64 DataOffset;
+			SDKANIMATION_DATA* pAnimationData;
+		};
+	};
+
+	struct SDKMESH_FRAME
+	{
+		char Name[MAX_FRAME_NAME];
+		UINT Mesh;
+		UINT ParentFrame;
+		UINT ChildFrame;
+		UINT SiblingFrame;
+		DirectX::XMFLOAT4X4 Matrix;
+		UINT AnimationDataIndex;		//Used to index which set of keyframes transforms this frame
+	};
+*/
+
+	//frame manipulation
+	//void TransformBindPoseFrame(_In_ UINT iFrame, _In_ DirectX::CXMMATRIX parentWorld);
+	//void TransformFrame(_In_ UINT iFrame, _In_ DirectX::CXMMATRIX parentWorld, _In_ double fTime);
+	//void TransformFrameAbsolute(_In_ UINT iFrame, _In_ double fTime);
+
+	//virtual HRESULT LoadAnimation(_In_z_ const WCHAR* szFileName);
+
+	//Animation
+	//UINT              GetNumInfluences(_In_ UINT iMesh) const;
+	//DirectX::XMMATRIX GetMeshInfluenceMatrix(_In_ UINT iMesh, _In_ UINT iInfluence) const;
+	//UINT              GetAnimationKeyFromTime(_In_ double fTime) const;
+	//DirectX::XMMATRIX GetWorldMatrix(_In_ UINT iFrameIndex) const;
+	//DirectX::XMMATRIX GetInfluenceMatrix(_In_ UINT iFrameIndex) const;
+	//bool              GetAnimationProperties(_Out_ UINT* pNumKeys, _Out_ float* pFrameTime) const;
+
 	struct EntityDX_t {
 
 		//
@@ -131,20 +192,27 @@ namespace DXF {
 
 
 		//
+		// TODO: build an adapater/load-function of some kind for loading a file format into an entity
+		//
+		CDXUTSDKMesh *pMeshSDK;
+
+
+		//
 		// TODO: the transformation heirarchy should be independent of the entity but will need
 		//       some mechanism or adapter for interfacing with the entity
 		//
 		// TransformHierarchy_t ...
 
-		//
-		// TODO: build an adapater/load-function of some kind for loading a file format into an entity
-		//
-		CDXUTSDKMesh *pMeshSDK;
-
-		//
-		// TODO: model matrix should be a part of the transform hierarchy
-		//
+		// model matrix is a placeholder until transform hierarchy is implemented
 		XMMATRIX model;
+
+		// animation data that is stored in SDKmesh file format (not 100% of how to visualize)
+		//SDKANIMATION_FILE_HEADER* m_pAnimationHeader;
+		//SDKANIMATION_FRAME_DATA* m_pAnimationFrameData;
+
+		//DirectX::XMFLOAT4X4* m_pBindPoseFrameMatrices;
+		//DirectX::XMFLOAT4X4* m_pTransformedFrameMatrices;
+		//DirectX::XMFLOAT4X4* m_pWorldPoseFrameMatrices;
 
 
 		//
@@ -156,12 +224,8 @@ namespace DXF {
 
 
 	//
-	// TODO: remove SAL annotations, replace _In_ with const and use __RESTRICT__ when two or more
-	//       pointers are passed to a function
-	//
-
-	//
-	// TODO: pointer qualifier '*' should have no whitespace between it and the type
+	// TODO: make all functions as const correct as possible and decide on wether to pass by
+	//       pointer or pass by reference (benchmark but there should be no real difference)
 	//
 
 	//
@@ -170,8 +234,14 @@ namespace DXF {
 	// int* const pInt; // cannot modify pointer but can modify pointed at values
 	// const int* pInt; // cannot modify pointed at values but can modify pointer itself
 
+	
 	HRESULT LoadEntity(CONST_PTR_VAL(RendererDX_t*) pRenderer, LPCTSTR fileName, CONST_PTR(EntityDX_t*) pEntity);
 	//HRESULT LoadEntity(const RendererDX_t* const pRenderer, LPCTSTR fileName, EntityDX_t* const pEntity);
+
+	//
+	// TODO: should be using __RESTRICT__ with functions that take two or more pointers params
+	//
+
 
 	void DestroyEntity(EntityDX_t* pEntity);
 
@@ -189,31 +259,24 @@ namespace DXF {
 	//void CreateDefaultIndexBuffer(ID3D11Buffer**, numIndices, format, pData);
 
 
-	HRESULT InitPrimitives(_In_ MeshDX_t *pMesh, _In_ RendererDX_t *pRenderer, _Out_ PrimitivesDX_t *pPrimitives);
-	void DestroyPrimitives(_Inout_ PrimitivesDX_t *pPrimitives);
+	HRESULT InitPrimitives(MeshDX_t* pMesh, RendererDX_t* pRenderer, PrimitivesDX_t* pPrimitives);
+	void DestroyPrimitives(PrimitivesDX_t* pPrimitives);
 
 
 	//
 	// TODO: also create a color coded guide line for x, y, z axis in a GenerateAxisGuide function
 	//
-	HRESULT GenerateGridXZ(_In_ RendererDX_t *pRenderer, const int32_t extent, _Out_ EntityDX_t *pEntity);
+	HRESULT GenerateGridXZ(RendererDX_t* pRenderer, const int32_t extent, EntityDX_t* pEntity);
 
 	//
 	// TODO: should have a generic destroy entity function
 	//
-	void DestroyGridXZ(_Inout_ EntityDX_t *pEntity);
+	void DestroyGridXZ(EntityDX_t* pEntity);
 
 
 	//
 	// TODO: function for drawing a primitives skeletal animation rig or frame data
 	//
-	// animation data that is stored in SDKmesh file format (not 100% of how to visualize)
-	//SDKANIMATION_FILE_HEADER* m_pAnimationHeader;
-	//SDKANIMATION_FRAME_DATA* m_pAnimationFrameData;
-	//DirectX::XMFLOAT4X4* m_pBindPoseFrameMatrices;
-	//DirectX::XMFLOAT4X4* m_pTransformedFrameMatrices;
-	//DirectX::XMFLOAT4X4* m_pWorldPoseFrameMatrices;
 
-
-	void InitViewVolume(_In_ RendererDX_t *pRenderer, _Out_ ViewVolume_t *pViewVolume);
+	void InitViewVolume(RendererDX_t* pRenderer, ViewVolume_t* pViewVolume);
 };

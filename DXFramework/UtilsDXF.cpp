@@ -12,8 +12,8 @@
 namespace DXF {
 
 	void ErrorBox(LPSTR lpszFunction) {
-		LPVOID lpMsgBuf;
-		LPVOID lpDisplayBuf;
+		LPVOID lpMsgBuf = NULL;
+		LPVOID lpDisplayBuf = NULL;
 		DWORD dw = GetLastError();
 
 		// NOTE: if a relevant HRESULT is needed use the following
@@ -22,6 +22,7 @@ namespace DXF {
 		// NOTE: FormatMessage will allocate memory using LocalAlloc, free with LocalFree
 		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 			NULL, dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
+		assert(lpMsgBuf != NULL);
 
 		SIZE_T size = SizeNeededInUTF8(lpszFunction);
 		HANDLE hProcHeap = GetProcessHeap();
@@ -73,7 +74,7 @@ namespace DXF {
 		ExitProcess(GetLastError());
 	}
 
-	SIZE_T SizeNeededInUTF8(_In_ LPCSTR lpszAnsi) {
+	SIZE_T SizeNeededInUTF8(LPCSTR lpszAnsi) {
 		//
 		// TODO: need to double the size needed to accommodate wide chars, something is not quite right
 		//       about this (possibly using MultiByteToWideChar wrong, CP_ACP doesn't seem to be right either)
@@ -81,21 +82,20 @@ namespace DXF {
 		return MultiByteToWideChar(CP_UTF8, 0, lpszAnsi, -1, NULL, 0) * 2;
 	}
 
-	SIZE_T SizeNeededInANSI(_In_ LPCWSTR lpszUtf) {
+	SIZE_T SizeNeededInANSI(LPCWSTR lpszUtf) {
 		return WideCharToMultiByte(CP_UTF8, 0, lpszUtf, -1, NULL, 0, NULL, FALSE);
 	}
 
-	HRESULT ANSItoUTF8(_In_ LPCSTR lpszAnsi, _In_ const int size, _Out_ LPWSTR lpszUtf) {
+	HRESULT ANSItoUTF8(LPCSTR lpszAnsi, const int size, LPWSTR lpszUtf) {
 		return MultiByteToWideChar(CP_UTF8, 0, lpszAnsi, -1, lpszUtf, size);
 	}
 
-	HRESULT UTF8toANSI(_In_ LPCWSTR lpszUtf, _In_ const int size, _Inout_ LPSTR lpszAnsi) {
+	HRESULT UTF8toANSI(LPCWSTR lpszUtf, const int size, LPSTR lpszAnsi) {
 		return WideCharToMultiByte(CP_UTF8, 0, lpszUtf, -1, lpszAnsi, size, NULL, FALSE);
 	}
 
-	FileMemory_t ReadFileIntoMemory(_In_ LPCTSTR fileName) {
-		FileMemory_t fm;
-		ZeroMemory(&fm, sizeof(FileMemory_t));
+	FileMemory_t ReadFileIntoMemory(LPCTSTR fileName) {
+		FileMemory_t fm = {};
 
 		HANDLE hFile = CreateFile(fileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 		if (hFile == INVALID_HANDLE_VALUE) {
@@ -142,7 +142,7 @@ namespace DXF {
 		return fm;
 	}
 
-	void DestroyFileMemory(_Inout_ FileMemory_t *pFileMemory) {
+	void DestroyFileMemory(FileMemory_t* pFileMemory) {
 		//
 		// TODO: this pattern would also make a useful macro e.g. DXF_FREE() and for COM objects DXF_RELEASE()
 		//
@@ -168,7 +168,7 @@ namespace DXF {
 		ResetOperationTimer(pTimer);
 	}
 
-	void ResetOperationTimer(OperationTimer_t *pTimer) {
+	void ResetOperationTimer(OperationTimer_t* pTimer) {
 		pTimer->cycleCountStart = __rdtsc();
 		if (!QueryPerformanceCounter(&(pTimer->perfCounterStart))) {
 			DXF_ERROR_BOX();
@@ -178,14 +178,14 @@ namespace DXF {
 		pTimer->lastPerfCounter.QuadPart = pTimer->perfCounterStart.QuadPart;
 	}
 
-	void Mark(OperationTimer_t *pTimer) {
+	void Mark(OperationTimer_t* pTimer) {
 		pTimer->lastCycleCount = __rdtsc();
 		if (!QueryPerformanceCounter(&(pTimer->lastPerfCounter))) {
 			DXF_ERROR_BOX();
 		}
 	}
 
-	OperationSpan_t Measure(OperationTimer_t *pTimer) {
+	OperationSpan_t Measure(OperationTimer_t* pTimer) {
 		OperationSpan_t result;
 
 		//

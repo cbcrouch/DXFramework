@@ -9,7 +9,7 @@
 
 namespace DXF {
 
-	void checkDirectX11_2(ID3D11Device *pDevice);
+	void checkDirectX11_2(ID3D11Device* pDevice);
 
 	//
 	// TODO: move to InitDevice and provide function for setting clear color
@@ -19,8 +19,8 @@ namespace DXF {
 	static const float clearColor[4] = { 0.2f, 0.2f, 0.2f, 1.0f }; // gray
 
 
-	HRESULT InitRenderer(_In_ HWND hwnd, _Out_ RendererDX_t *pRenderer) {
-		HRESULT hr = S_OK;
+	HRESULT InitRenderer(const HWND hwnd, RendererDX_t* pRenderer) {
+		HRESULT hr;
 
 		// get the width and height of the HWND
 		RECT rc;
@@ -62,8 +62,7 @@ namespace DXF {
 		UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 
 		// configure swap chain
-		DXGI_SWAP_CHAIN_DESC sd;
-		ZeroMemory(&sd, sizeof(sd));
+		DXGI_SWAP_CHAIN_DESC sd = {};
 		sd.BufferCount = 2; // double buffered to minimize latency
 		sd.BufferDesc.Width = width;
 		sd.BufferDesc.Height = height;
@@ -80,7 +79,17 @@ namespace DXF {
 		for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; ++driverTypeIndex) {
 			pRenderer->driverType = driverTypes[driverTypeIndex];
 
+			//
+			// TODO: is it safe to use nullptr with Win32 calls ??? (there does appear to be a lot of Microsoft
+			//       sample code that is using nullptr with Win32 calls and types FWIW)
+			//
+			/*
 			hr = D3D11CreateDeviceAndSwapChain(NULL, pRenderer->driverType, NULL, CreateRendererFlags, featureLevels,
+				numFeatureLevels, D3D11_SDK_VERSION, &sd, &(pRenderer->pSwapChain), &(pRenderer->pDevice),
+				&(pRenderer->featureLevel), &(pRenderer->pImmediateContext));
+			*/
+
+			hr = D3D11CreateDeviceAndSwapChain(nullptr, pRenderer->driverType, nullptr, CreateRendererFlags, featureLevels,
 				numFeatureLevels, D3D11_SDK_VERSION, &sd, &(pRenderer->pSwapChain), &(pRenderer->pDevice),
 				&(pRenderer->featureLevel), &(pRenderer->pImmediateContext));
 
@@ -129,8 +138,7 @@ namespace DXF {
 
 		// create depth stencil view
 		ID3D11Texture2D *pDepthStencilBuffer = NULL;
-		D3D11_TEXTURE2D_DESC descDepth;
-		ZeroMemory(&descDepth, sizeof(descDepth));
+		D3D11_TEXTURE2D_DESC descDepth = {};
 		descDepth.Width = width;
 		descDepth.Height = height;
 		descDepth.MipLevels = 1;
@@ -145,8 +153,7 @@ namespace DXF {
 		hr = pRenderer->pDevice->CreateTexture2D(&descDepth, NULL, &pDepthStencilBuffer);
 		DXF_CHECK_HRESULT(hr);
 
-		D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
-		ZeroMemory(&descDSV, sizeof(descDSV));
+		D3D11_DEPTH_STENCIL_VIEW_DESC descDSV = {};
 		descDSV.Format = descDepth.Format;
 		descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 		descDSV.Texture2D.MipSlice = 0;
@@ -169,16 +176,16 @@ namespace DXF {
 		return hr;
 	}
 
-	void PresentView(_In_ RendererDX_t *pRenderer) {
+	void PresentView(RendererDX_t* pRenderer) {
 		pRenderer->pSwapChain->Present(0, 0);
 	}
 
-	void ClearView(_In_ RendererDX_t *pRenderer) {
+	void ClearView(RendererDX_t* pRenderer) {
 		pRenderer->pImmediateContext->ClearRenderTargetView(pRenderer->pRenderTargetView, clearColor);
 		pRenderer->pImmediateContext->ClearDepthStencilView(pRenderer->pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
 	}
 
-	void DestroyRenderer(_Inout_ RendererDX_t *pRenderer) {
+	void DestroyRenderer(RendererDX_t* pRenderer) {
 		if (pRenderer->pImmediateContext) { pRenderer->pImmediateContext->ClearState(); }
 		if (pRenderer->pRenderTargetView) { pRenderer->pRenderTargetView->Release(); }
 		if (pRenderer->pSwapChain) { pRenderer->pSwapChain->Release(); }
@@ -186,9 +193,22 @@ namespace DXF {
 		if (pRenderer->pDevice) { pRenderer->pDevice->Release(); }
 	}
 
-	void checkDirectX11_2(ID3D11Device *pDevice) {
-		D3D11_FEATURE_DATA_D3D11_OPTIONS1 featureData;
-		pDevice->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS1, &featureData, sizeof(featureData));
+	void checkDirectX11_2(ID3D11Device* pDevice) {
+		D3D11_FEATURE_DATA_D3D11_OPTIONS1 featureData = {};
+		HRESULT hr = pDevice->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS1, &featureData, sizeof(featureData));
+
+		//
+		// TODO: should have an if failed then error box macro that can be stripped out of release
+		//       builds similar to DXF_CHECK_HRESULT
+		//
+
+		//DXF_CHECK_HRESULT(hr);
+
+		//DXF_ASSERT_HR(hr);
+		if (FAILED(hr)) {
+			DXF_ERROR_BOX();
+		}
+
 		D3D11_TILED_RESOURCES_TIER tiledResourcesTier = featureData.TiledResourcesTier;
 
 		if (featureData.MinMaxFiltering == TRUE) {
@@ -213,9 +233,6 @@ namespace DXF {
 				break;
 			case D3D11_TILED_RESOURCES_TIER_2:
 				OutputDebugString(TEXT("video adapter supports DirectX 11.2 tier 2 tiled resources\n"));
-				break;
-			default:
-				assert(FALSE); // should never get here
 				break;
 		}
 	}

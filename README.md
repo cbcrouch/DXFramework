@@ -10,7 +10,7 @@ of the Win32 API and DirectX. Work will be slow going given that I am a family m
 hobby projects as well. Also all development is being done in another revision control system, this repo will
 only occasionally be updated with various notable snapshots.
 
-Beware of hardcoded paths and use of tabs.
+Beware of hardcoded paths.
 
 Dependencies
 ----------------
@@ -27,7 +27,7 @@ If you are in need of Wavefront obj files to parse:
 SDKmesh files can easily be found on the web, typically in most DirectX samples.
 
 
-License (BSD 2-clause)
+License
 ---------------------------
 
 Copyright 2015 Casey Crouch. All rights reserved.

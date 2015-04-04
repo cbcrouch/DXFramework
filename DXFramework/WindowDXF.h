@@ -8,6 +8,7 @@
 #pragma once
 
 #include "DXFCommon.h"
+#include "UtilsDXF.h"
 
 
 //
@@ -22,28 +23,28 @@
 #define MAX_STRING 256
 
 namespace DXF {
-	struct WindowW32_t {
-		// window specific members
-		HWND handle;
-		HWND parentHandle;
-		WNDCLASSEX winClass;
-		HMENU menuHandle;
+    struct WindowW32_t {
+        // window specific members
+        HWND handle;
+        HWND parentHandle;
+        WNDCLASSEX winClass;
+        HMENU menuHandle;
 
-		TCHAR title[MAX_STRING];
-		TCHAR className[MAX_STRING];
+        TCHAR title[MAX_STRING];
+        TCHAR className[MAX_STRING];
 
-		POINT origin;
-		SIZE winSize;
+        POINT origin;
+        SIZE winSize;
 
-		// application specific members
-		HINSTANCE hInstance;
-		HANDLE hWndCloseEvt;
-	};
+        // application specific members
+        HINSTANCE hInstance;
+        HANDLE hWndCloseEvt;
+    };
 
-	HRESULT InitWindowW32(HINSTANCE hInst, LPCTSTR szName, SIZE winSize, HWND hParent, WindowW32_t* pWin);
+    HRESULT InitWindowW32(HINSTANCE hInst, LPCTSTR szName, SIZE winSize, HWND hParent, WindowW32_t* pWin);
 
-	HRESULT CreateWindowW32(WindowW32_t* pWin);
-	void DestroyWindowW32(WindowW32_t* pWin);
+    HRESULT CreateWindowW32(WindowW32_t* pWin);
+    void DestroyWindowW32(WindowW32_t* pWin);
 
-	LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 };

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "DXFCommon.h"
+#include "UtilsDXF.h"
 
 //
 // TODO: don't force the user to have to have XInput on their system, load the functions
@@ -22,15 +23,15 @@
 //
 
 namespace DXF {
-	struct GamePads_t {
-		// ...
-		BOOL activeControllers[XUSER_MAX_COUNT];
-	};
+    struct GamePads_t {
+        // ...
+        BOOL activeControllers[XUSER_MAX_COUNT];
+    };
 
-	void createGamePads(GamePads_t** ppGamePads);
-	void initGamePads(GamePads_t* pGamePads);
-	void destroyGamePads(GamePads_t** ppGamePads);
+    void createGamePads(GamePads_t** ppGamePads);
+    void initGamePads(GamePads_t* pGamePads);
+    void destroyGamePads(GamePads_t** ppGamePads);
 
-	void activatePolling(GamePads_t* pGamePads);
-	void stopPolling(GamePads_t* pGamePads);
+    void activatePolling(GamePads_t* pGamePads);
+    void stopPolling(GamePads_t* pGamePads);
 };

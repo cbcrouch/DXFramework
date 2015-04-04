@@ -8,19 +8,19 @@
 #pragma once
 
 #include "DXFCommon.h"
-
+#include "UtilsDXF.h"
 #include "RendererDXF.h"
 
 namespace DXF {
 
-	//
-	// TODO: store useful params in struct like max anisotropy to avoid having
-	//       to get it from Direct3D
-	//
-	struct SamplerDX_t {
-		ID3D11SamplerState*        pSamplerState;
-	};
+    //
+    // TODO: store useful params in struct like max anisotropy to avoid having
+    //       to get it from Direct3D
+    //
+    struct SamplerDX_t {
+        ID3D11SamplerState*        pSamplerState;
+    };
 
-	HRESULT InitSampler(RendererDX_t* pRenderer, SamplerDX_t* pSampler);
-	void DestroySampler(SamplerDX_t* pSampler);
+    HRESULT InitSampler(RendererDX_t* pRenderer, SamplerDX_t* pSampler);
+    void DestroySampler(SamplerDX_t* pSampler);
 };

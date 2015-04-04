@@ -11,204 +11,204 @@
 
 namespace DXF {
 
-	void ErrorBox(LPSTR lpszFunction) {
-		LPVOID lpMsgBuf = NULL;
-		LPVOID lpDisplayBuf = NULL;
-		DWORD dw = GetLastError();
+    void ErrorBox(LPSTR lpszFunction) {
+        LPVOID lpMsgBuf = nullptr;
+        LPVOID lpDisplayBuf = nullptr;
+        DWORD dw = GetLastError();
 
-		// NOTE: if a relevant HRESULT is needed use the following
-		//HRESULT hr = HRESULT_FROM_WIN32(dw);
+        // NOTE: if a relevant HRESULT is needed use the following
+        //HRESULT hr = HRESULT_FROM_WIN32(dw);
 
-		// NOTE: FormatMessage will allocate memory using LocalAlloc, free with LocalFree
-		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL, dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
-		assert(lpMsgBuf != NULL);
+        // NOTE: FormatMessage will allocate memory using LocalAlloc, free with LocalFree
+        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            nullptr, dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, nullptr);
+        assert(lpMsgBuf != nullptr);
 
-		SIZE_T size = SizeNeededInUTF8(lpszFunction);
-		HANDLE hProcHeap = GetProcessHeap();
+        SIZE_T size = SizeNeededInUTF8(lpszFunction);
+        HANDLE hProcHeap = GetProcessHeap();
 
-		LPWSTR lpszFunctionW = (LPWSTR)HeapAlloc(hProcHeap, HEAP_ZERO_MEMORY, size);
-		assert(lpszFunctionW != NULL);
+        LPWSTR lpszFunctionW = (LPWSTR)HeapAlloc(hProcHeap, HEAP_ZERO_MEMORY, size);
+        assert(lpszFunctionW != nullptr);
 
-		HRESULT hr = ANSItoUTF8(lpszFunction, (int)size, lpszFunctionW);
-		switch (hr) {
-			case ERROR_INSUFFICIENT_BUFFER: OutputDebugString(TEXT("ErrorBox: MultiByteToWideChar failed with error ERROR_INSUFFICIENT_BUFFER\n")); break;
-			case ERROR_INVALID_FLAGS: OutputDebugString(TEXT("ErrorBox: MultiByteToWideChar failed with error ERROR_INVALID_FLAGS\n")); break;
-			case ERROR_INVALID_PARAMETER: OutputDebugString(TEXT("ErrorBox: MultiByteToWideChar failed with error ERROR_INVALID_PARAMETER\n")); break;
-			case ERROR_NO_UNICODE_TRANSLATION: OutputDebugString(TEXT("ErrorBox: MultiByteToWideChar failed with error ERROR_NO_UNICODE_TRANSLATION\n")); break;
-			default: break;
-		}
+        HRESULT hr = ANSItoUTF8(lpszFunction, (int)size, lpszFunctionW);
+        switch (hr) {
+            case ERROR_INSUFFICIENT_BUFFER: OutputDebugString(TEXT("ErrorBox: MultiByteToWideChar failed with error ERROR_INSUFFICIENT_BUFFER\n")); break;
+            case ERROR_INVALID_FLAGS: OutputDebugString(TEXT("ErrorBox: MultiByteToWideChar failed with error ERROR_INVALID_FLAGS\n")); break;
+            case ERROR_INVALID_PARAMETER: OutputDebugString(TEXT("ErrorBox: MultiByteToWideChar failed with error ERROR_INVALID_PARAMETER\n")); break;
+            case ERROR_NO_UNICODE_TRANSLATION: OutputDebugString(TEXT("ErrorBox: MultiByteToWideChar failed with error ERROR_NO_UNICODE_TRANSLATION\n")); break;
+            default: break;
+        }
 
-		int displayBufLen = lstrlen(TEXT("%s failed with error %d: %s")) +
-			lstrlen((LPCTSTR)lpszFunctionW) +
-			lstrlen((LPCTSTR)lpMsgBuf);
+        int displayBufLen = lstrlen(TEXT("%s failed with error %d: %s")) +
+            lstrlen((LPCTSTR)lpszFunctionW) +
+            lstrlen((LPCTSTR)lpMsgBuf);
 
-		// decrement by number of format specifier characters since they will be replaced in the final string
-		displayBufLen -= 6;
+        // decrement by number of format specifier characters since they will be replaced in the final string
+        displayBufLen -= 6;
 
-		// calculate number of digits dw will print
-		if (dw != 0) {
-			displayBufLen += ((int)log10(dw)) + 1;
-		}
-		else {
-			displayBufLen += 1;
-		}
+        // calculate number of digits dw will print
+        if (dw != 0) {
+            displayBufLen += ((int)log10(dw)) + 1;
+        }
+        else {
+            displayBufLen += 1;
+        }
 
-		lpDisplayBuf = HeapAlloc(hProcHeap, HEAP_ZERO_MEMORY, displayBufLen * sizeof(TCHAR));
-		assert(lpDisplayBuf != NULL);
+        lpDisplayBuf = HeapAlloc(hProcHeap, HEAP_ZERO_MEMORY, displayBufLen * sizeof(TCHAR));
+        assert(lpDisplayBuf != nullptr);
 
-		StringCchPrintf((LPTSTR)lpDisplayBuf, displayBufLen, TEXT("%s failed with error %d: %s"),
-			lpszFunctionW, dw, (LPCTSTR)lpMsgBuf);
+        StringCchPrintf((LPTSTR)lpDisplayBuf, displayBufLen, TEXT("%s failed with error %d: %s"),
+            lpszFunctionW, dw, (LPCTSTR)lpMsgBuf);
 
-		MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK);
+        MessageBox(nullptr, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK);
 
-		// NOTE: FormatMessage allocated memory using LocalAlloc, free with LocalFree
-		LocalFree(lpMsgBuf);
+        // NOTE: FormatMessage allocated memory using LocalAlloc, free with LocalFree
+        LocalFree(lpMsgBuf);
 
-		BOOL bVal = HeapFree(hProcHeap, 0, (LPVOID)lpszFunctionW);
-		bVal = HeapFree(hProcHeap, 0, lpDisplayBuf);
-	}
+        BOOL bVal = HeapFree(hProcHeap, 0, (LPVOID)lpszFunctionW);
+        bVal = HeapFree(hProcHeap, 0, lpDisplayBuf);
+    }
 
-	void ErrorExit(LPSTR lpszFunction) {
-		ErrorBox(lpszFunction);
-		ExitProcess(GetLastError());
-	}
+    void ErrorExit(LPSTR lpszFunction) {
+        ErrorBox(lpszFunction);
+        ExitProcess(GetLastError());
+    }
 
-	SIZE_T SizeNeededInUTF8(LPCSTR lpszAnsi) {
-		//
-		// TODO: need to double the size needed to accommodate wide chars, something is not quite right
-		//       about this (possibly using MultiByteToWideChar wrong, CP_ACP doesn't seem to be right either)
-		//
-		return MultiByteToWideChar(CP_UTF8, 0, lpszAnsi, -1, NULL, 0) * 2;
-	}
+    SIZE_T SizeNeededInUTF8(LPCSTR lpszAnsi) {
+        //
+        // TODO: need to double the size needed to accommodate wide chars, something is not quite right
+        //       about this (possibly using MultiByteToWideChar wrong, CP_ACP doesn't seem to be right either)
+        //
+        return MultiByteToWideChar(CP_UTF8, 0, lpszAnsi, -1, nullptr, 0) * 2;
+    }
 
-	SIZE_T SizeNeededInANSI(LPCWSTR lpszUtf) {
-		return WideCharToMultiByte(CP_UTF8, 0, lpszUtf, -1, NULL, 0, NULL, FALSE);
-	}
+    SIZE_T SizeNeededInANSI(LPCWSTR lpszUtf) {
+        return WideCharToMultiByte(CP_UTF8, 0, lpszUtf, -1, nullptr, 0, nullptr, FALSE);
+    }
 
-	HRESULT ANSItoUTF8(LPCSTR lpszAnsi, const int size, LPWSTR lpszUtf) {
-		return MultiByteToWideChar(CP_UTF8, 0, lpszAnsi, -1, lpszUtf, size);
-	}
+    HRESULT ANSItoUTF8(LPCSTR lpszAnsi, const int size, LPWSTR lpszUtf) {
+        return MultiByteToWideChar(CP_UTF8, 0, lpszAnsi, -1, lpszUtf, size);
+    }
 
-	HRESULT UTF8toANSI(LPCWSTR lpszUtf, const int size, LPSTR lpszAnsi) {
-		return WideCharToMultiByte(CP_UTF8, 0, lpszUtf, -1, lpszAnsi, size, NULL, FALSE);
-	}
+    HRESULT UTF8toANSI(LPCWSTR lpszUtf, const int size, LPSTR lpszAnsi) {
+        return WideCharToMultiByte(CP_UTF8, 0, lpszUtf, -1, lpszAnsi, size, nullptr, FALSE);
+    }
 
-	FileMemory_t ReadFileIntoMemory(LPCTSTR fileName) {
-		FileMemory_t fm = {};
+    FileMemory_t ReadFileIntoMemory(LPCTSTR fileName) {
+        FileMemory_t fm = {};
 
-		HANDLE hFile = CreateFile(fileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-		if (hFile == INVALID_HANDLE_VALUE) {
-			DXF_ERROR_BOX();
-			return fm;
-		}
+        HANDLE hFile = CreateFile(fileName, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+        if (hFile == INVALID_HANDLE_VALUE) {
+            DXF_ERROR_BOX();
+            return fm;
+        }
 
-		// NOTE: GetFileSize is deprecated, use GetFileSizeEx instead
-		LARGE_INTEGER fileSize;
-		if (!GetFileSizeEx(hFile, &fileSize)) {
-			DXF_ERROR_BOX();
-			CloseHandle(hFile);
-			return fm;
-		}
+        // NOTE: GetFileSize is deprecated, use GetFileSizeEx instead
+        LARGE_INTEGER fileSize;
+        if (!GetFileSizeEx(hFile, &fileSize)) {
+            DXF_ERROR_BOX();
+            CloseHandle(hFile);
+            return fm;
+        }
 
-		void *pMemory = malloc((size_t)fileSize.QuadPart);
-		assert(pMemory != NULL);
-
-
-		//
-		// TODO: defines for max values and an inline safe truncate function
-		//
-		assert(fileSize.QuadPart < 0xffffffff);
-		DWORD fileSize32 = (DWORD)fileSize.QuadPart;
+        void *pMemory = malloc((size_t)fileSize.QuadPart);
+        assert(pMemory != nullptr);
 
 
-		DWORD bytesRead = 0;
-		if (!ReadFile(hFile, pMemory, fileSize32, &bytesRead, NULL)) {
-			DXF_ERROR_BOX();
-			CloseHandle(hFile);
-			free(pMemory);
-			return fm;
-		}
-		assert(fileSize32 == bytesRead);
+        //
+        // TODO: defines for max values and an inline safe truncate function
+        //
+        assert(fileSize.QuadPart < 0xffffffff);
+        DWORD fileSize32 = (DWORD)fileSize.QuadPart;
 
-		if (!CloseHandle(hFile)) {
-			DXF_ERROR_BOX();
-			return fm;
-		}
 
-		fm.fileSize = fileSize;
-		fm.data = pMemory;
+        DWORD bytesRead = 0;
+        if (!ReadFile(hFile, pMemory, fileSize32, &bytesRead, nullptr)) {
+            DXF_ERROR_BOX();
+            CloseHandle(hFile);
+            free(pMemory);
+            return fm;
+        }
+        assert(fileSize32 == bytesRead);
 
-		return fm;
-	}
+        if (!CloseHandle(hFile)) {
+            DXF_ERROR_BOX();
+            return fm;
+        }
 
-	void DestroyFileMemory(FileMemory_t* pFileMemory) {
-		//
-		// TODO: this pattern would also make a useful macro e.g. DXF_FREE() and for COM objects DXF_RELEASE()
-		//
-		if (pFileMemory->data) {
-			free(pFileMemory->data);
-		}
+        fm.fileSize = fileSize;
+        fm.data = pMemory;
 
-		memset(&(pFileMemory->fileSize), 0, sizeof(LARGE_INTEGER));
-		pFileMemory->data = NULL;
-	}
+        return fm;
+    }
 
-	void InitOperationTimer(OperationTimer_t *pTimer) {
-		//
-		// NOTE: perf counter frequency is set at boot time and does not change
-		//       (at least according to the documentation)
-		//
+    void DestroyFileMemory(FileMemory_t* pFileMemory) {
+        //
+        // TODO: this pattern would also make a useful macro e.g. DXF_FREE() and for COM objects DXF_RELEASE()
+        //
+        if (pFileMemory->data) {
+            free(pFileMemory->data);
+        }
 
-		// ticks per second (note that this is NOT CPU clock cycles)
-		if (!QueryPerformanceFrequency(&(pTimer->frequency))) {
-			DXF_ERROR_BOX();
-		}
+        memset(&(pFileMemory->fileSize), 0, sizeof(LARGE_INTEGER));
+        pFileMemory->data = nullptr;
+    }
 
-		ResetOperationTimer(pTimer);
-	}
+    void InitOperationTimer(OperationTimer_t *pTimer) {
+        //
+        // NOTE: perf counter frequency is set at boot time and does not change
+        //       (at least according to the documentation)
+        //
 
-	void ResetOperationTimer(OperationTimer_t* pTimer) {
-		pTimer->cycleCountStart = __rdtsc();
-		if (!QueryPerformanceCounter(&(pTimer->perfCounterStart))) {
-			DXF_ERROR_BOX();
-		}
+        // ticks per second (note that this is NOT CPU clock cycles)
+        if (!QueryPerformanceFrequency(&(pTimer->frequency))) {
+            DXF_ERROR_BOX();
+        }
 
-		pTimer->lastCycleCount = pTimer->cycleCountStart;
-		pTimer->lastPerfCounter.QuadPart = pTimer->perfCounterStart.QuadPart;
-	}
+        ResetOperationTimer(pTimer);
+    }
 
-	void Mark(OperationTimer_t* pTimer) {
-		pTimer->lastCycleCount = __rdtsc();
-		if (!QueryPerformanceCounter(&(pTimer->lastPerfCounter))) {
-			DXF_ERROR_BOX();
-		}
-	}
+    void ResetOperationTimer(OperationTimer_t* pTimer) {
+        pTimer->cycleCountStart = __rdtsc();
+        if (!QueryPerformanceCounter(&(pTimer->perfCounterStart))) {
+            DXF_ERROR_BOX();
+        }
 
-	OperationSpan_t Measure(OperationTimer_t* pTimer) {
-		OperationSpan_t result;
+        pTimer->lastCycleCount = pTimer->cycleCountStart;
+        pTimer->lastPerfCounter.QuadPart = pTimer->perfCounterStart.QuadPart;
+    }
 
-		//
-		// TODO: may also want to try GetTickCount64
-		//
-		uint64_t endCycleCount = __rdtsc();
+    void Mark(OperationTimer_t* pTimer) {
+        pTimer->lastCycleCount = __rdtsc();
+        if (!QueryPerformanceCounter(&(pTimer->lastPerfCounter))) {
+            DXF_ERROR_BOX();
+        }
+    }
 
-		LARGE_INTEGER endPerfCount;
-		if (!QueryPerformanceCounter(&endPerfCount)) {
-			DXF_ERROR_BOX();
-		}
+    OperationSpan_t Measure(OperationTimer_t* pTimer) {
+        OperationSpan_t result;
 
-		//
-		// TODO: need to verify calculations
-		//
+        //
+        // TODO: may also want to try GetTickCount64
+        //
+        uint64_t endCycleCount = __rdtsc();
 
-		uint64_t cyclesElapsed = endCycleCount - pTimer->lastCycleCount;
-		result.megaCyclesElapsed = cyclesElapsed / (1000 * 1000);
+        LARGE_INTEGER endPerfCount;
+        if (!QueryPerformanceCounter(&endPerfCount)) {
+            DXF_ERROR_BOX();
+        }
 
-		LARGE_INTEGER delta;
-		delta.QuadPart = endPerfCount.QuadPart - pTimer->lastPerfCounter.QuadPart;
-		result.msElapsed = 1000 * delta.QuadPart / pTimer->frequency.QuadPart;
+        //
+        // TODO: need to verify calculations
+        //
 
-		return result;
-	}
+        uint64_t cyclesElapsed = endCycleCount - pTimer->lastCycleCount;
+        result.megaCyclesElapsed = cyclesElapsed / (1000 * 1000);
+
+        LARGE_INTEGER delta;
+        delta.QuadPart = endPerfCount.QuadPart - pTimer->lastPerfCounter.QuadPart;
+        result.msElapsed = 1000 * delta.QuadPart / pTimer->frequency.QuadPart;
+
+        return result;
+    }
 };

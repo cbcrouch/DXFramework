@@ -11,8 +11,8 @@
 
 #define DXF_CheckHResultError(HR) \
 if (FAILED(HR)) { \
-	OutputDebugString(TEXT("HRESULT FAILED\n")); \
-	return HR; \
+    OutputDebugString(TEXT("HRESULT FAILED\n")); \
+    return HR; \
 }
 
 // NOTE: make sure all conditional and loop statements use proper scoping
@@ -36,54 +36,54 @@ if (FAILED(HR)) { \
 
 
 namespace DXF {
-	void ErrorBox(LPSTR lpszFunction); // warns of error using a message box
-	void ErrorExit(LPSTR lpszFunction); // displays error in message box then exits
+    void ErrorBox(LPSTR lpszFunction); // warns of error using a message box
+    void ErrorExit(LPSTR lpszFunction); // displays error in message box then exits
 
-	SIZE_T SizeNeededInUTF8(LPCSTR lpszAnsi);
-	SIZE_T SizeNeededInANSI(LPCWSTR lpszUtf);
-	HRESULT ANSItoUTF8(LPCSTR lpszAnsi, const int size, LPWSTR lpszUtf);
-	HRESULT UTF8toANSI(LPCWSTR lpszUtf, const int size, LPSTR lpszAnsi);
+    SIZE_T SizeNeededInUTF8(LPCSTR lpszAnsi);
+    SIZE_T SizeNeededInANSI(LPCWSTR lpszUtf);
+    HRESULT ANSItoUTF8(LPCSTR lpszAnsi, const int size, LPWSTR lpszUtf);
+    HRESULT UTF8toANSI(LPCWSTR lpszUtf, const int size, LPSTR lpszAnsi);
 
-	//inline uint32_t SafeTruncate(uint64_t value) {
-	//	assert(value <= 0xffffffff);
-	//	uint32_t ret = (uint32_t)value;
-	//	return ret;
-	//}
+    //inline uint32_t SafeTruncate(uint64_t value) {
+    //	assert(value <= 0xffffffff);
+    //	uint32_t ret = (uint32_t)value;
+    //	return ret;
+    //}
 
-	struct FileMemory_t {
-		LARGE_INTEGER fileSize;
-		LPVOID data;
-	};
+    struct FileMemory_t {
+        LARGE_INTEGER fileSize;
+        LPVOID data;
+    };
 
-	FileMemory_t ReadFileIntoMemory(LPCTSTR fileName);
-	void DestroyFileMemory(FileMemory_t* pFileMemory);
+    FileMemory_t ReadFileIntoMemory(LPCTSTR fileName);
+    void DestroyFileMemory(FileMemory_t* pFileMemory);
 
-	struct OperationTimer_t {
-		LARGE_INTEGER frequency;
-		LARGE_INTEGER perfCounterStart;
-		LARGE_INTEGER lastPerfCounter;
-		uint64_t cycleCountStart;
-		uint64_t lastCycleCount;
-	};
+    struct OperationTimer_t {
+        LARGE_INTEGER frequency;
+        LARGE_INTEGER perfCounterStart;
+        LARGE_INTEGER lastPerfCounter;
+        uint64_t cycleCountStart;
+        uint64_t lastCycleCount;
+    };
 
-	struct OperationSpan_t {
-		int64_t msElapsed;
-		int64_t megaCyclesElapsed;
-	};
+    struct OperationSpan_t {
+        int64_t msElapsed;
+        int64_t megaCyclesElapsed;
+    };
 
-	void InitOperationTimer(OperationTimer_t* pTimer);  // gets the frequency and then sets start values
-	void ResetOperationTimer(OperationTimer_t* pTimer); // will set the start values to current time
+    void InitOperationTimer(OperationTimer_t* pTimer);  // gets the frequency and then sets start values
+    void ResetOperationTimer(OperationTimer_t* pTimer); // will set the start values to current time
 
-	// starting point which to base measurements off of
-	void Mark(OperationTimer_t* pTimer);
+    // starting point which to base measurements off of
+    void Mark(OperationTimer_t* pTimer);
 
-	// calculate and return an OperationSpan_t (won't modify the last values in the timer)
-	OperationSpan_t Measure(OperationTimer_t* pTimer);
+    // calculate and return an OperationSpan_t (won't modify the last values in the timer)
+    OperationSpan_t Measure(OperationTimer_t* pTimer);
 
-	//
-	// TODO: add another timer based utility that is a circular buffer of
-	//       operation spans and generates statistics, can be used to smooth
-	//       out frame rate based displays and to provide some automated
-	//       detection of frame rate spikes/drops
-	//
+    //
+    // TODO: add another timer based utility that is a circular buffer of
+    //       operation spans and generates statistics, can be used to smooth
+    //       out frame rate based displays and to provide some automated
+    //       detection of frame rate spikes/drops
+    //
 };

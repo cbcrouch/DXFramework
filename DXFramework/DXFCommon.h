@@ -18,10 +18,6 @@
 #endif
 
 
-
-
-
-
 // base operating system
 #include <Windows.h>
 
@@ -42,28 +38,39 @@
 #include <directxmath.h>
 using namespace DirectX;
 
-
-
-//
-// TODO: these project generic macros/typedefs/etc. should be in their own "common" header file
-//
-
-#define CONST_PTR(P) P const
-#define CONST_VAL(P) const P
-#define CONST_PTR_VAL(P) const P const
+#include <cstdint>
 
 
 //
 // TODO: either use C stdint types or declare own (Windows.h might bring these in automatically)
 //       and replace all implicit int/float/etc. types with explicit types int32/real32/etc.
 //
-//#include <cstdint>
-//using std::int32_t;
+
+using std::int32_t;
+using std::int64_t;
+
+using std::uint32_t;
+using std::uint64_t;
+
 //etc.
 
-//typedef int int32;
-//typedef float real32;
-//etc.
+using byte_t = uint8_t;
+using signed_byte_t = int8_t;
+
+using real32_t = float;
+using real64_t = double;
 
 
-#include "UtilsDXF.h"
+//
+// TODO: these project generic macros/typedefs/etc. should be in their own "common" header file
+//
+#define CONST_PTR(P) P const
+#define CONST_VAL(P) const P           // should ideally use a const reference instead
+#define CONST_PTR_VAL(P) const P const // should also try using a const reference instead
+
+// if an input param cannot be nullptr then use a reference
+// if a function needs to modify a value then pass by pointer
+
+//
+// TODO: should be using __RESTRICT__ with functions that take two or more pointers params
+//

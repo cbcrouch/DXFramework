@@ -40,16 +40,16 @@
 //
 
 enum WINDOW_EVENT : unsigned int {
-	WND_CLOSE = 0,
-	WND_CREATE
+    WND_CLOSE = 0,
+    WND_CREATE
 };
 
 //
 // TODO: make these of TCHAR type
 //
 const wchar_t* WINDOW_EVENT_STR[] = {
-	L"WindowW32CloseEvt",
-	L"WindowW32CreateEvt"  // window successfully created, it is now safe to create the device
+    L"WindowW32CloseEvt",
+    L"WindowW32CreateEvt"  // window successfully created, it is now safe to create the device
 };
 
 // WINDOW_EVENT_STR[WND_CLOSE] == L"WindowW32CloseEvt"
@@ -63,19 +63,19 @@ const wchar_t* WINDOW_EVENT_STR[] = {
 // TODO: open/register async event callback function
 //
 /*
-HANDLE hWaitObject = NULL; // this would be return value
+HANDLE hWaitObject = nullptr; // this would be return value
 HANDLE rEvt = OpenEvent(EVENT_ALL_ACCESS, TRUE, TEXT("WindowW32CloseEvt"));
-if (rEvt != NULL) {
-	// async wait using Windows thread pool
-	RegisterWaitForSingleObject(&hWaitObject, rEvt, RenderFlagCallback, (PVOID)(&running),
-		INFINITE, WT_EXECUTEONLYONCE);
+if (rEvt != nullptr) {
+    // async wait using Windows thread pool
+    RegisterWaitForSingleObject(&hWaitObject, rEvt, RenderFlagCallback, (PVOID)(&running),
+        INFINITE, WT_EXECUTEONLYONCE);
 }
 */
 
 // example callback
 /*
 VOID CALLBACK RenderFlagCallback(_In_ PVOID lpParam, _In_ BOOLEAN timerWaitOrFired) {
-	*((PBOOL)lpParam) = FALSE;
+    *((PBOOL)lpParam) = FALSE;
 }
 */
 
@@ -84,8 +84,8 @@ VOID CALLBACK RenderFlagCallback(_In_ PVOID lpParam, _In_ BOOLEAN timerWaitOrFir
 //
 /*
 // TODO: lookup how to properly clean up the event we're waiting on
-if (hWaitObject != NULL) {
-	UnregisterWait(hWaitObject);
+if (hWaitObject != nullptr) {
+    UnregisterWait(hWaitObject);
 }
 
 //CloseHandle(hWaitObject);
@@ -96,28 +96,28 @@ if (hWaitObject != NULL) {
 // TODO: refer to notes at the top of DXFramework.cpp and get together a candidate list of events
 //
 enum RENDER_EVENT : unsigned int {
-	FRAME_READY = 0
+    FRAME_READY = 0
 };
 
 //
 // TODO: make this of type TCHAR
 //
 const wchar_t* RENDER_EVENT_STR[] = {
-	L"RenderFrameEvt"
+    L"RenderFrameEvt"
 };
 
 enum CONTROL_EVENT : unsigned int {
-	PAUSE_SIM = 0
+    PAUSE_SIM = 0
 };
 
 const wchar_t* CONTROL_EVENT_STR[] = {
-	L"PauseSimEvt"
+    L"PauseSimEvt"
 };
 
 enum SYSTEM_EVENT : unsigned int {
-	SYS_EXIT = 0
+    SYS_EXIT = 0
 };
 
 const wchar_t* SYS_EVENT_STR[] = {
-	L"SysExitEvt"
+    L"SysExitEvt"
 };

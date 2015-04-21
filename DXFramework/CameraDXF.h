@@ -8,6 +8,23 @@
 #include "DXFCommon.h"
 #include "UtilsDXF.h"
 
+namespace DXF_CONSTANTS {
+    // view voluem defaults
+    static const real32_t verticalFOV = XM_PIDIV4;
+    static const real32_t aspectRatio = 1920.0f / 1080.0f;
+    static const real32_t nearPlane = 2.0f;
+    static const real32_t farPlane = 1000.0f;
+
+    // camera defaults
+    static const XMVECTOR position = XMVectorSet(4.0f, 2.0f, 4.0f, 0.0f);
+    static const XMVECTOR look = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+    static const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+    //
+    // TODO: defaults for translation and rotation speed
+    //
+};
+
 namespace DXF {
 
     class ViewVolume {
@@ -28,6 +45,15 @@ namespace DXF {
         XMMATRIX getProjection() const;
 
         // setters
+
+        //
+        // TODO: functions for setting near plane, far plane, and aspect ratio
+        //
+
+        //void setNearPlane(real32_t nearPlane);
+        //void setFarPlane(real32_t farPlane);
+        //void setAspectRatio(real32_t aspectRatio);
+
         void setShape(real32_t verticalFOV, real32_t aspectRatio, real32_t nearPlane, real32_t farPlane);
 
     protected:
@@ -39,6 +65,21 @@ namespace DXF {
         XMMATRIX m_projection;
     };
 
+    
+    enum class CameraTranslationState : uint32_t {
+        FOWARD   = 0x01u,
+        BACKWARD = 0x01u << 1,
+        RIGHT    = 0x01u << 2,
+        LEFT     = 0x01u << 3,
+        UP       = 0x01u << 4,
+        DOWN     = 0x01u << 5
+    };
+
+    enum class CameraRotationState : uint32_t {
+        ROLL  = 0x01u,
+        PITCH = 0x01u << 1,
+        YAW   = 0x01u << 2
+    };
 
     class Camera {
     public:
@@ -55,35 +96,64 @@ namespace DXF {
         Camera& operator=(Camera&&) = delete;
 
         // getters
-        XMVECTOR getPosition();
-        XMVECTOR getLook();
-        XMVECTOR getUp();
-        real32_t getYaw();
-        real32_t getPitch();
-        XMMATRIX getViewMatrix();
+        XMVECTOR getPosition() const;
+        XMVECTOR getLook() const;
+        XMVECTOR getUp() const;
+
+        real32_t getYaw() const;
+        real32_t getPitch() const;
+
+        //
+        // TODO: implement roll
+        //
+        //real32_t getRoll() const;
+
+        XMMATRIX getViewMatrix() const;
+        ViewVolume getViewVolume() const;
 
         // setters
         void setLook(real32_t yaw, real32_t pitch);
-        //void setTranslationState(CAMERA_STATE state);
+        void setPose(XMVECTOR position, XMVECTOR look, XMVECTOR up);
 
+        void setTranslationState(CameraTranslationState state);
+        void clearTranslationState(CameraTranslationState state);
 
-        // behaviors
-        // homomorphisms
-        // morphisms
+        void setRotationState(CameraRotationState state);
+        void clearRotationState(CameraRotationState state);
 
+        // methods
         void step(real32_t secsElapsed);
-
         void resetLookDirection();
         void resetState();
         void saveState();
 
     protected:
+        void updateViewMatrix();
+
         XMVECTOR m_position;
         XMVECTOR m_look;
         XMVECTOR m_up;
 
         real32_t m_yaw;
         real32_t m_pitch;
+
+        //
+        // TODO: implement roll
+        //
+        //real32_t m_roll;
+
+        //
+        // TODO: implement functions for setting the translation and rotation speed
+        //
+        XMFLOAT3 m_translationSpeed;
+        XMFLOAT3 m_rotationSpeed;
+
+        XMVECTOR m_cachedPosition;
+        real32_t m_cachedYaw;
+        real32_t m_cachedPitch;
+
+        uint32_t m_translationFlags;
+        uint32_t m_rotationFlags;
 
         XMMATRIX m_viewMatrix;
         ViewVolume m_viewVolume;

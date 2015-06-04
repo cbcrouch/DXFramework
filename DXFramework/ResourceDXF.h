@@ -229,12 +229,15 @@ namespace DXF {
 
 
     //
-    // TODO: make all functions as const correct as possible and decide on wether to pass by
-    //       pointer or pass by reference (benchmark but there should be no real difference)
+    // TODO: make all functions as const correct as possible and pass by reference whenever possible
+    //       (also first argument should be function output)
     //
+    // e.g.
+    HRESULT LoadSDKMesh(EntityDX_t& entity, LPCTSTR fileName, const RendererDX_t& renderer);
 
-    
-    HRESULT LoadSDKMesh(const RendererDX_t& renderer, LPCTSTR fileName, CONST_PTR(EntityDX_t*) pEntity);
+
+
+
     void DestroySDKMesh(EntityDX_t* pEntity);
 
 
@@ -260,12 +263,14 @@ namespace DXF {
     // TODO: also create a color coded guide line for x, y, z axis in a GenerateAxisGuide function
     //
     
-    HRESULT GenerateGridXZ(const RendererDX_t& renderer, const int32_t extent, CONST_PTR(EntityDX_t*) pEntity);
+    //HRESULT GenerateGridXZ(const RendererDX_t& renderer, const int32_t extent, CONST_PTR(EntityDX_t*) pEntity);
+    HRESULT GenerateGridXZ(const RendererDX_t& renderer, const int32_t extent, EntityDX_t* const pEntity);
 
     //
     // TODO: should have a generic destroy entity function
     //
-    void DestroyGridXZ(CONST_PTR(EntityDX_t*) pEntity);
+    //void DestroyGridXZ(CONST_PTR(EntityDX_t*) pEntity);
+    void DestroyGridXZ(EntityDX_t* const pEntity);
 
     //
     // TODO: function for drawing a primitives skeletal animation rig

@@ -9,7 +9,8 @@
 
 namespace DXF {
 
-    HRESULT GenerateGridXZ(const RendererDX_t& renderer, const int32_t extent, CONST_PTR(EntityDX_t*) pEntity) {
+    //HRESULT GenerateGridXZ(const RendererDX_t& renderer, const int32_t extent, CONST_PTR(EntityDX_t*) pEntity) {
+    HRESULT GenerateGridXZ(const RendererDX_t& renderer, const int32_t extent, EntityDX_t* const pEntity) {
         pEntity->pMesh = (MeshDX_t *)malloc(sizeof(MeshDX_t));
         assert(pEntity->pMesh != nullptr);
 
@@ -127,7 +128,8 @@ namespace DXF {
         return S_OK;
     }
 
-    void DestroyGridXZ(CONST_PTR(EntityDX_t*) pEntity) {
+    //void DestroyGridXZ(CONST_PTR(EntityDX_t*) pEntity) {
+    void DestroyGridXZ(EntityDX_t* const pEntity) {
 
         if (pEntity->pTexture) { pEntity->pTexture->Release(); pEntity->pTexture = nullptr; }
 
@@ -138,6 +140,11 @@ namespace DXF {
     }
 
 
+
+    //
+    // TODO: replace with a reference to the entity ???
+    //
+/*
     HRESULT LoadSDKMesh(const RendererDX_t& renderer, LPCTSTR fileName, CONST_PTR(EntityDX_t*) pEntity) {
         HRESULT hr = S_OK;
         pEntity->pMeshSDK = new CDXUTSDKMesh();
@@ -152,6 +159,25 @@ namespace DXF {
 
         return hr;
     }
+*/
+
+    HRESULT LoadSDKMesh(EntityDX_t& entity, LPCTSTR fileName, const RendererDX_t& renderer) {
+        HRESULT hr = S_OK;
+        entity.pMeshSDK = new CDXUTSDKMesh();
+
+        hr = entity.pMeshSDK->Create(renderer.pDevice, fileName);
+
+        //
+        // TODO: calculate the center point and use it to set model matrix
+        //
+        XMVECTOR vCenter = XMVectorSet(0.25767413f, -28.503521f, 111.00689f, 0.0f);
+        entity.model = XMMatrixTranslationFromVector(vCenter);
+
+        return hr;
+    }
+
+
+
 
     void DestroySDKMesh(EntityDX_t* pEntity) {
         if (pEntity->pMeshSDK) { delete(pEntity->pMeshSDK); }

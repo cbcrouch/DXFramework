@@ -10,10 +10,10 @@
 
 namespace DXF_CONSTANTS {
     // view voluem defaults
-    static const real32_t verticalFOV = XM_PIDIV4;
-    static const real32_t aspectRatio = 1920.0f / 1080.0f;
-    static const real32_t nearPlane = 2.0f;
-    static const real32_t farPlane = 1000.0f;
+    static const float32_t verticalFOV = XM_PIDIV4;
+    static const float32_t aspectRatio = 1920.0f / 1080.0f;
+    static const float32_t nearPlane = 2.0f;
+    static const float32_t farPlane = 1000.0f;
 
     // camera defaults
     static const XMVECTOR position = XMVectorSet(4.0f, 2.0f, 4.0f, 0.0f);
@@ -30,7 +30,7 @@ namespace DXF {
     class ViewVolume {
     public:
         ViewVolume();
-        ViewVolume(real32_t verticalFOV, real32_t aspectRatio, real32_t nearPlane, real32_t farPlane);
+        ViewVolume(float32_t verticalFOV, float32_t aspectRatio, float32_t nearPlane, float32_t farPlane);
         ~ViewVolume() = default;
 
         // copy ctor and assignment
@@ -45,44 +45,37 @@ namespace DXF {
         XMMATRIX getProjection() const;
 
         // setters
-
-        //
-        // TODO: functions for setting near plane, far plane, and aspect ratio
-        //
-
-        //void setNearPlane(real32_t nearPlane);
-        //void setFarPlane(real32_t farPlane);
-        //void setAspectRatio(real32_t aspectRatio);
-
-        void setShape(real32_t verticalFOV, real32_t aspectRatio, real32_t nearPlane, real32_t farPlane);
+        void setNearPlane(float32_t nearPlane);
+        void setFarPlane(float32_t farPlane);
+        void setVerticalFOV(float32_t verticalFOV);
+        void setAspectRatio(float32_t aspectRatio);
+        void setShape(float32_t verticalFOV, float32_t aspectRatio, float32_t nearPlane, float32_t farPlane);
 
     protected:
-        real32_t m_verticalFOV;
-        real32_t m_horizontalFOV;
-        real32_t m_aspectRatio;
-        real32_t m_nearPlane;
-        real32_t m_farPlane;
+        float32_t m_verticalFOV;
+        float32_t m_aspectRatio;
+        float32_t m_nearPlane;
+        float32_t m_farPlane;
         XMMATRIX m_projection;
-    };
-
-    
-    enum class CameraTranslationState : uint32_t {
-        FOWARD   = 0x01u,
-        BACKWARD = 0x01u << 1,
-        RIGHT    = 0x01u << 2,
-        LEFT     = 0x01u << 3,
-        UP       = 0x01u << 4,
-        DOWN     = 0x01u << 5
-    };
-
-    enum class CameraRotationState : uint32_t {
-        ROLL  = 0x01u,
-        PITCH = 0x01u << 1,
-        YAW   = 0x01u << 2
     };
 
     class Camera {
     public:
+        enum class TranslationState : uint32_t {
+            FOWARD = 0x01u,
+            BACKWARD = 0x01u << 1,
+            RIGHT = 0x01u << 2,
+            LEFT = 0x01u << 3,
+            UP = 0x01u << 4,
+            DOWN = 0x01u << 5
+        };
+
+        enum class RotationState : uint32_t {
+            ROLL = 0x01u,
+            PITCH = 0x01u << 1,
+            YAW = 0x01u << 2
+        };
+
         Camera();
         Camera(XMVECTOR position, XMVECTOR look, XMVECTOR up);
         ~Camera() = default;
@@ -100,29 +93,29 @@ namespace DXF {
         XMVECTOR getLook() const;
         XMVECTOR getUp() const;
 
-        real32_t getYaw() const;
-        real32_t getPitch() const;
+        float32_t getYaw() const;
+        float32_t getPitch() const;
 
         //
         // TODO: implement roll
         //
-        //real32_t getRoll() const;
+        //float32_t getRoll() const;
 
         XMMATRIX getViewMatrix() const;
         ViewVolume getViewVolume() const;
 
         // setters
-        void setLook(real32_t yaw, real32_t pitch);
+        void setLook(float32_t yaw, float32_t pitch);
         void setPose(XMVECTOR position, XMVECTOR look, XMVECTOR up);
 
-        void setTranslationState(CameraTranslationState state);
-        void clearTranslationState(CameraTranslationState state);
+        void setTranslationState(TranslationState state);
+        void clearTranslationState(TranslationState state);
 
-        void setRotationState(CameraRotationState state);
-        void clearRotationState(CameraRotationState state);
+        void setRotationState(RotationState state);
+        void clearRotationState(RotationState state);
 
         // methods
-        void step(real32_t secsElapsed);
+        void step(float32_t secsElapsed);
         void resetLookDirection();
         void resetState();
         void saveState();
@@ -134,13 +127,13 @@ namespace DXF {
         XMVECTOR m_look;
         XMVECTOR m_up;
 
-        real32_t m_yaw;
-        real32_t m_pitch;
+        float32_t m_yaw;
+        float32_t m_pitch;
 
         //
         // TODO: implement roll
         //
-        //real32_t m_roll;
+        //float32_t m_roll;
 
         //
         // TODO: implement functions for setting the translation and rotation speed
@@ -149,8 +142,8 @@ namespace DXF {
         XMFLOAT3 m_rotationSpeed;
 
         XMVECTOR m_cachedPosition;
-        real32_t m_cachedYaw;
-        real32_t m_cachedPitch;
+        float32_t m_cachedYaw;
+        float32_t m_cachedPitch;
 
         uint32_t m_translationFlags;
         uint32_t m_rotationFlags;

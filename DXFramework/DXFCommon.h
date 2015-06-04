@@ -25,11 +25,11 @@
 //#include <SDKDDKVer.h>
 
 
-
+//
 // TODO: using preprocessor dynamically include d3d headers if possible and determine
 //       which header to include (i.e. if on a DX10 platform is it still okay to use
 //       the the DX11_x header ??)
-
+//
 //#include <d3d11.h>
 //#include <d3d11_1.h>
 #include <d3d11_2.h>
@@ -40,37 +40,16 @@ using namespace DirectX;
 
 #include <cstdint>
 
-
-//
-// TODO: either use C stdint types or declare own (Windows.h might bring these in automatically)
-//       and replace all implicit int/float/etc. types with explicit types int32/real32/etc.
-//
-
+using std::int16_t;
 using std::int32_t;
 using std::int64_t;
 
+using std::uint16_t;
 using std::uint32_t;
 using std::uint64_t;
-
-//etc.
 
 using byte_t = uint8_t;
 using signed_byte_t = int8_t;
 
-using real32_t = float;
-using real64_t = double;
-
-
-//
-// TODO: these project generic macros/typedefs/etc. should be in their own "common" header file
-//
-#define CONST_PTR(P) P const
-#define CONST_VAL(P) const P           // should ideally use a const reference instead
-#define CONST_PTR_VAL(P) const P const // should also try using a const reference instead
-
-// if an input param cannot be nullptr then use a reference
-// if a function needs to modify a value then pass by pointer
-
-//
-// TODO: should be using __RESTRICT__ with functions that take two or more pointers params
-//
+using float32_t = float;
+using float64_t = double;

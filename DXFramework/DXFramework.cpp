@@ -374,7 +374,9 @@ int APIENTRY wWinMain (
     // calc bounding box test
     //
     DXF::EntityDX_t sdkmesh = {};
-    hr = DXF::LoadSDKMesh(dxRenderer, TEXT("..\\Resources\\tiny.sdkmesh"), &sdkmesh);
+    hr = DXF::LoadSDKMesh(sdkmesh, TEXT("..\\Resources\\tiny.sdkmesh"), dxRenderer);
+
+
     DXF_CHECK_HRESULT(hr);
 
     XMVECTOR yAxis = XMVectorSet(0.0, 1.0, 0.0, 0.0);

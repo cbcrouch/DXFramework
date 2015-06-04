@@ -17,7 +17,7 @@ namespace DXF {
     ViewVolume::ViewVolume() : ViewVolume(DXF_CONSTANTS::verticalFOV, DXF_CONSTANTS::aspectRatio,
         DXF_CONSTANTS::nearPlane, DXF_CONSTANTS::farPlane) { }
 
-    ViewVolume::ViewVolume(real32_t verticalFOV, real32_t aspectRatio, real32_t nearPlane, real32_t farPlane) {
+    ViewVolume::ViewVolume(float32_t verticalFOV, float32_t aspectRatio, float32_t nearPlane, float32_t farPlane) {
         setShape(verticalFOV, aspectRatio, nearPlane, farPlane);
     }
 
@@ -28,7 +28,6 @@ namespace DXF {
     ViewVolume& ViewVolume::operator=(const ViewVolume& viewVolume) {
         assert(this != &viewVolume);
         m_verticalFOV = viewVolume.m_verticalFOV;
-        m_horizontalFOV = viewVolume.m_horizontalFOV;
         m_aspectRatio = viewVolume.m_aspectRatio;
         m_nearPlane = viewVolume.m_nearPlane;
         m_farPlane = viewVolume.m_farPlane;
@@ -40,9 +39,32 @@ namespace DXF {
         return m_projection;
     }
 
-    void ViewVolume::setShape(real32_t verticalFOV, real32_t aspectRatio, real32_t nearPlane, real32_t farPlane) {
+    void ViewVolume::setNearPlane(float32_t nearPlane) {
+        m_nearPlane = nearPlane;
+        m_projection = XMMatrixPerspectiveFovLH(m_verticalFOV, m_aspectRatio, m_nearPlane, m_farPlane);
+    }
+
+    void ViewVolume::setFarPlane(float32_t farPlane) {
+        m_farPlane = farPlane;
+        m_projection = XMMatrixPerspectiveFovLH(m_verticalFOV, m_aspectRatio, m_nearPlane, m_farPlane);
+    }
+
+    void ViewVolume::setVerticalFOV(float32_t verticalFOV) {
         m_verticalFOV = verticalFOV;
-        m_horizontalFOV = atanf(tanf(verticalFOV / 2.0f) * aspectRatio);
+        m_projection = XMMatrixPerspectiveFovLH(m_verticalFOV, m_aspectRatio, m_nearPlane, m_farPlane);
+    }
+
+    void ViewVolume::setAspectRatio(float32_t aspectRatio) {
+        m_aspectRatio = aspectRatio;
+        m_projection = XMMatrixPerspectiveFovLH(m_verticalFOV, m_aspectRatio, m_nearPlane, m_farPlane);
+    }
+
+    void ViewVolume::setShape(float32_t verticalFOV, float32_t aspectRatio, float32_t nearPlane, float32_t farPlane) {
+        m_verticalFOV = verticalFOV;
+        //
+        // TODO: if support is added for the horizontal FOV calculate the horizontal FOV on the getter
+        //
+        //m_horizontalFOV = atanf(tanf(verticalFOV / 2.0f) * aspectRatio);
         m_aspectRatio = aspectRatio;
         m_nearPlane = nearPlane;
         m_farPlane = farPlane;
@@ -103,11 +125,11 @@ namespace DXF {
         return m_up;
     }
 
-    real32_t Camera::getYaw() const {
+    float32_t Camera::getYaw() const {
         return m_yaw;
     }
 
-    real32_t Camera::getPitch() const {
+    float32_t Camera::getPitch() const {
         return m_pitch;
     }
 
@@ -119,11 +141,11 @@ namespace DXF {
         return m_viewVolume;
     }
 
-    void Camera::setLook(real32_t yaw, real32_t pitch) {
+    void Camera::setLook(float32_t yaw, float32_t pitch) {
         m_yaw = yaw;
         m_pitch = pitch;
 
-        real32_t r = cosf(pitch);
+        float32_t r = cosf(pitch);
         m_look = XMVectorSet(r*sinf(yaw), sinf(pitch), r*cosf(yaw), 0.0f);
 
         XMVECTOR right = XMVectorSet(sinf(yaw - XM_PIDIV2), 0.0f, cosf(yaw - XM_PIDIV2), 0.0f);
@@ -146,6 +168,10 @@ namespace DXF {
         m_look = look;
         m_up = up;
 
+        //
+        // TODO: try calculating yaw and pitch by using vector math instead of trigonometry
+        //
+
         XMVECTOR hyp = XMVector4Normalize(XMVectorSubtract(position, look));
         m_yaw = -XM_PI + atan2f(XMVectorGetX(hyp), XMVectorGetY(hyp));
         m_pitch = -atan2f(XMVectorGetY(hyp), XMVectorGetY(hyp)) / 2.0f;
@@ -161,26 +187,26 @@ namespace DXF {
         updateViewMatrix();
     }
 
-    inline void Camera::setTranslationState(CameraTranslationState state) {
+    inline void Camera::setTranslationState(TranslationState state) {
         m_translationFlags |= static_cast<uint32_t>(state);
     }
 
-    inline void Camera::clearTranslationState(CameraTranslationState state) {
+    inline void Camera::clearTranslationState(TranslationState state) {
         m_translationFlags &= ~(static_cast<uint32_t>(state));
     }
 
-    inline void Camera::setRotationState(CameraRotationState state) {
+    inline void Camera::setRotationState(RotationState state) {
         m_rotationFlags |= static_cast<uint32_t>(state);
     }
 
-    inline void Camera::clearRotationState(CameraRotationState state) {
+    inline void Camera::clearRotationState(RotationState state) {
         m_rotationFlags &= ~(static_cast<uint32_t>(state));
     }
 
-    void Camera::step(real32_t secsElapsed) {
+    void Camera::step(float32_t secsElapsed) {
         bool updated = false;
 
-        if (m_translationFlags & static_cast<uint32_t>(CameraTranslationState::FOWARD)) {
+        if (m_translationFlags & static_cast<uint32_t>(TranslationState::FOWARD)) {
             XMVECTOR translationVec = XMVector4Normalize(XMVectorSubtract(m_position, m_look));
             //
             // TODO: determine that operator* is overloaded for a scalar multiply and implement translation speed vector
@@ -189,20 +215,20 @@ namespace DXF {
             updated = true;
         }
 
-        if (m_translationFlags & static_cast<uint32_t>(CameraTranslationState::BACKWARD)) {
+        if (m_translationFlags & static_cast<uint32_t>(TranslationState::BACKWARD)) {
             XMVECTOR translationVec = XMVector4Normalize(XMVectorSubtract(m_position, m_look));
             m_position = XMVectorAdd(m_position, m_translationSpeed.z * translationVec);
             updated = true;
         }
 
-        if (m_translationFlags & static_cast<uint32_t>(CameraTranslationState::LEFT)) {
+        if (m_translationFlags & static_cast<uint32_t>(TranslationState::LEFT)) {
             XMVECTOR side = XMVector2Cross(XMVectorSubtract(m_position, m_look), m_up);
             XMVECTOR translationVec = XMVector4Normalize(side);
             m_position = XMVectorAdd(m_position, m_translationSpeed.x * translationVec);
             updated = true;
         }
 
-        if (m_translationFlags & static_cast<uint32_t>(CameraTranslationState::RIGHT)) {
+        if (m_translationFlags & static_cast<uint32_t>(TranslationState::RIGHT)) {
             XMVECTOR side = XMVector2Cross(XMVectorSubtract(m_position, m_look), m_up);
             XMVECTOR translationVec = XMVector4Normalize(side);
             m_position = XMVectorSubtract(m_position, m_translationSpeed.x * translationVec);

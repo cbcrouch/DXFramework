@@ -58,7 +58,7 @@ namespace DXF {
                 BOOL rEvt = SetEvent(pWin->hWndCloseEvt);
 
                 // call WindowW32_t dtor then destroy the Win32 HWND
-                DestroyWindowW32(pWin);
+                DestroyWindowW32(*pWin);
                 if (DestroyWindow(pWin->handle) != TRUE) {
                     OutputDebugString(TEXT("destroy window call failed\n"));
                     return E_FAIL;
@@ -99,90 +99,90 @@ namespace DXF {
         return rv;
     }
 
-    HRESULT InitWindowW32(HINSTANCE hInst, LPCTSTR szName, SIZE winSize, HWND hParent, WindowW32_t* pWin) {
+    HRESULT InitWindowW32(WindowW32_t& win, HINSTANCE hInst, HWND hParent, const SIZE winSize, LPCTSTR szName) {
         // initialize with defaults
-        pWin->handle = nullptr;
-        pWin->parentHandle = hParent;
-        pWin->hInstance = hInst;
-        pWin->menuHandle = nullptr;
-        pWin->origin.x = CW_USEDEFAULT;
-        pWin->origin.y = CW_USEDEFAULT;
-        pWin->winSize = winSize;
+        win.handle = nullptr;
+        win.parentHandle = hParent;
+        win.hInstance = hInst;
+        win.menuHandle = nullptr;
+        win.origin.x = CW_USEDEFAULT;
+        win.origin.y = CW_USEDEFAULT;
+        win.winSize = winSize;
 
         // copy strings
 #ifdef UNICODE
-        wcsncpy_s(pWin->title, szName, MAX_STRING - 1);
-        wcsncpy_s(pWin->className, L"DXWindowClass", MAX_STRING - 1);
+        wcsncpy_s(win.title, szName, MAX_STRING - 1);
+        wcsncpy_s(win.className, L"DXWindowClass", MAX_STRING - 1);
 #else
-        strncpy_s(pWin->title, szName, MAX_STRING - 1);
-        strncpy_s(pWin->className, "DXWindowClass", MAX_STRING - 1);
+        strncpy_s(win.title, szName, MAX_STRING - 1);
+        strncpy_s(win.className, "DXWindowClass", MAX_STRING - 1);
 #endif
 
         // populate window class struct
-        pWin->winClass.cbSize = sizeof(WNDCLASSEX);
+        win.winClass.cbSize = sizeof(WNDCLASSEX);
 
         //
         // NOTE: add CS_OWNDC if planning on getting and then retaining window device context
         //
-        pWin->winClass.style = CS_HREDRAW | CS_VREDRAW;
+        win.winClass.style = CS_HREDRAW | CS_VREDRAW;
 
-        pWin->winClass.lpfnWndProc = WindowProcedure;
-        pWin->winClass.cbClsExtra = 0;
-        pWin->winClass.cbWndExtra = 0;
-        pWin->winClass.hInstance = pWin->hInstance;
-        pWin->winClass.hIcon = LoadIcon(nullptr, (LPCTSTR)IDI_APPLICATION);
-        pWin->winClass.hIconSm = LoadIcon(nullptr, (LPCTSTR)IDI_APPLICATION);
+        win.winClass.lpfnWndProc = WindowProcedure;
+        win.winClass.cbClsExtra = 0;
+        win.winClass.cbWndExtra = 0;
+        win.winClass.hInstance = win.hInstance;
+        win.winClass.hIcon = LoadIcon(nullptr, (LPCTSTR)IDI_APPLICATION);
+        win.winClass.hIconSm = LoadIcon(nullptr, (LPCTSTR)IDI_APPLICATION);
 
         //
         // TODO: load and store any additionally needed cursors, will require a cursors array in
         //       the WindowW32_t structure
         //
-        pWin->winClass.hCursor = LoadCursor(nullptr, (LPCTSTR)IDC_ARROW);
+        win.winClass.hCursor = LoadCursor(nullptr, (LPCTSTR)IDC_ARROW);
 
-        pWin->winClass.hbrBackground = nullptr;
-        pWin->winClass.lpszMenuName = nullptr;
-        pWin->winClass.lpszClassName = pWin->className;
+        win.winClass.hbrBackground = nullptr;
+        win.winClass.lpszMenuName = nullptr;
+        win.winClass.lpszClassName = win.className;
 
         // create an event to notify others that the window has been closed
         // default security, auto reset, false intial state, event name
-        pWin->hWndCloseEvt = CreateEvent(nullptr, FALSE, FALSE, TEXT("WindowW32CloseEvt"));
-        if (pWin->hWndCloseEvt == nullptr) {
+        win.hWndCloseEvt = CreateEvent(nullptr, FALSE, FALSE, TEXT("WindowW32CloseEvt"));
+        if (win.hWndCloseEvt == nullptr) {
             DXF_ERROR_BOX();
         }
 
         return S_OK;
     }
 
-    HRESULT CreateWindowW32(WindowW32_t* pWin) {
-        if (!RegisterClassEx(&(pWin->winClass))) {
+    HRESULT CreateWindowW32(WindowW32_t& win) {
+        if (!RegisterClassEx(&(win.winClass))) {
             return E_FAIL;
         }
 
         DWORD dwStyle = WS_OVERLAPPEDWINDOW; // overlapped window with a title bar, border, window menu, sizing border, min/max button
         DWORD dwExStyle = WS_EX_CLIENTEDGE; // window has a border with a sunken edge
 
-        RECT rc = { 0, 0, (LONG)(pWin->winSize.cx), (LONG)(pWin->winSize.cy) };
+        RECT rc = { 0, 0, (LONG)(win.winSize.cx), (LONG)(win.winSize.cy) };
         AdjustWindowRect(&rc, dwStyle, FALSE);
 
-        pWin->handle = CreateWindowEx(dwExStyle, pWin->className, pWin->title, dwStyle, pWin->origin.x, pWin->origin.y,
-            rc.right - rc.left, rc.bottom - rc.top, pWin->parentHandle, pWin->menuHandle, pWin->hInstance, pWin);
-        if (pWin->handle == nullptr) {
+        win.handle = CreateWindowEx(dwExStyle, win.className, win.title, dwStyle, win.origin.x, win.origin.y,
+            rc.right - rc.left, rc.bottom - rc.top, win.parentHandle, win.menuHandle, win.hInstance, &win);
+        if (win.handle == nullptr) {
             return E_FAIL;
         }
 
         //
         // TODO: determine why the title text is not getting shown by default and fix
         //
-        SetWindowText(pWin->handle, pWin->title);
-        ShowWindow(pWin->handle, SW_SHOW);
+        SetWindowText(win.handle, win.title);
+        ShowWindow(win.handle, SW_SHOW);
 
         return S_OK;
     }
 
-    void DestroyWindowW32(WindowW32_t* pWin) {
+    void DestroyWindowW32(WindowW32_t& win) {
         // NOTE: this is where any application data in the WindowW32_t struct would be cleaned up
-        CloseHandle(pWin->hWndCloseEvt);
+        CloseHandle(win.hWndCloseEvt);
 
-        BOOL rv = UnregisterClass((LPCTSTR)pWin->className, pWin->hInstance);
+        BOOL rv = UnregisterClass((LPCTSTR)win.className, win.hInstance);
     }
 };

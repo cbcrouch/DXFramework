@@ -19,7 +19,7 @@ namespace DXF {
     static const float clearColor[4] = { 0.2f, 0.2f, 0.2f, 1.0f }; // gray
 
 
-    HRESULT InitRenderer(const HWND hwnd, RendererDX_t* pRenderer) {
+    HRESULT InitRenderer(RendererDX_t& renderer, const HWND hwnd) {
         HRESULT hr;
 
         // get the width and height of the HWND
@@ -77,11 +77,11 @@ namespace DXF {
 
         // attempt to get perferred driver type and feature level
         for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; ++driverTypeIndex) {
-            pRenderer->driverType = driverTypes[driverTypeIndex];
+            renderer.driverType = driverTypes[driverTypeIndex];
 
-            hr = D3D11CreateDeviceAndSwapChain(nullptr, pRenderer->driverType, nullptr, CreateRendererFlags, featureLevels,
-                numFeatureLevels, D3D11_SDK_VERSION, &sd, &(pRenderer->pSwapChain), &(pRenderer->pDevice),
-                &(pRenderer->featureLevel), &(pRenderer->pImmediateContext));
+            hr = D3D11CreateDeviceAndSwapChain(nullptr, renderer.driverType, nullptr, CreateRendererFlags, featureLevels,
+                numFeatureLevels, D3D11_SDK_VERSION, &sd, &(renderer.pSwapChain), &(renderer.pDevice),
+                &(renderer.featureLevel), &(renderer.pImmediateContext));
 
             if (SUCCEEDED(hr)) {
                 //
@@ -94,10 +94,10 @@ namespace DXF {
                     default: assert(FALSE); break; // should never get here
                 }
 
-                switch (pRenderer->pDevice->GetFeatureLevel()) {
+                switch (renderer.pDevice->GetFeatureLevel()) {
                     case D3D_FEATURE_LEVEL_11_1: {
                         OutputDebugString(TEXT("video adapter max feature level DirectX 11.1\n"));
-                        checkDirectX11_2(pRenderer->pDevice);
+                        checkDirectX11_2(renderer.pDevice);
                     } break;
                     case D3D_FEATURE_LEVEL_11_0: OutputDebugString(TEXT("video adapter max feature level DirectX 11.0\n")); break;
                     //case D3D_FEATURE_LEVEL_10_1: OutputDebugString(TEXT("video adapter max feature level DirectX 10.1\n")); break;
@@ -121,10 +121,10 @@ namespace DXF {
 
         // create a render target view
         ID3D11Texture2D *pBackBuffer = nullptr;
-        hr = pRenderer->pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID *)&pBackBuffer);
+        hr = renderer.pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID *)&pBackBuffer);
         DXF_CHECK_HRESULT(hr);
 
-        hr = pRenderer->pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &(pRenderer->pRenderTargetView));
+        hr = renderer.pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &(renderer.pRenderTargetView));
         pBackBuffer->Release();
         DXF_CHECK_HRESULT(hr);
 
@@ -142,47 +142,47 @@ namespace DXF {
         descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
         descDepth.CPUAccessFlags = 0;
         descDepth.MiscFlags = 0;
-        hr = pRenderer->pDevice->CreateTexture2D(&descDepth, nullptr, &pDepthStencilBuffer);
+        hr = renderer.pDevice->CreateTexture2D(&descDepth, nullptr, &pDepthStencilBuffer);
         DXF_CHECK_HRESULT(hr);
 
         D3D11_DEPTH_STENCIL_VIEW_DESC descDSV = {};
         descDSV.Format = descDepth.Format;
         descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
         descDSV.Texture2D.MipSlice = 0;
-        hr = pRenderer->pDevice->CreateDepthStencilView(pDepthStencilBuffer, &descDSV, &(pRenderer->pDepthStencilView));
+        hr = renderer.pDevice->CreateDepthStencilView(pDepthStencilBuffer, &descDSV, &(renderer.pDepthStencilView));
         pDepthStencilBuffer->Release();
         DXF_CHECK_HRESULT(hr);
 
         // set render target
-        pRenderer->pImmediateContext->OMSetRenderTargets(1, &(pRenderer->pRenderTargetView), pRenderer->pDepthStencilView);
+        renderer.pImmediateContext->OMSetRenderTargets(1, &(renderer.pRenderTargetView), renderer.pDepthStencilView);
 
         // setup the viewport
-        pRenderer->vp.Width = (FLOAT)width;
-        pRenderer->vp.Height = (FLOAT)height;
-        pRenderer->vp.MinDepth = 0.0f;
-        pRenderer->vp.MaxDepth = 1.0f;
-        pRenderer->vp.TopLeftX = 0;
-        pRenderer->vp.TopLeftY = 0;
-        pRenderer->pImmediateContext->RSSetViewports(1, &(pRenderer->vp));
+        renderer.vp.Width = (FLOAT)width;
+        renderer.vp.Height = (FLOAT)height;
+        renderer.vp.MinDepth = 0.0f;
+        renderer.vp.MaxDepth = 1.0f;
+        renderer.vp.TopLeftX = 0;
+        renderer.vp.TopLeftY = 0;
+        renderer.pImmediateContext->RSSetViewports(1, &(renderer.vp));
 
         return hr;
     }
 
-    void PresentView(RendererDX_t* pRenderer) {
-        pRenderer->pSwapChain->Present(0, 0);
+    void DestroyRenderer(RendererDX_t& renderer) {
+        if (renderer.pImmediateContext) { renderer.pImmediateContext->ClearState(); }
+        if (renderer.pRenderTargetView) { renderer.pRenderTargetView->Release(); }
+        if (renderer.pSwapChain) { renderer.pSwapChain->Release(); }
+        if (renderer.pImmediateContext) { renderer.pImmediateContext->Release(); }
+        if (renderer.pDevice) { renderer.pDevice->Release(); }
     }
 
-    void ClearView(RendererDX_t* pRenderer) {
-        pRenderer->pImmediateContext->ClearRenderTargetView(pRenderer->pRenderTargetView, clearColor);
-        pRenderer->pImmediateContext->ClearDepthStencilView(pRenderer->pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
+    void PresentView(RendererDX_t& renderer) {
+        renderer.pSwapChain->Present(0, 0);
     }
 
-    void DestroyRenderer(RendererDX_t* pRenderer) {
-        if (pRenderer->pImmediateContext) { pRenderer->pImmediateContext->ClearState(); }
-        if (pRenderer->pRenderTargetView) { pRenderer->pRenderTargetView->Release(); }
-        if (pRenderer->pSwapChain) { pRenderer->pSwapChain->Release(); }
-        if (pRenderer->pImmediateContext) { pRenderer->pImmediateContext->Release(); }
-        if (pRenderer->pDevice) { pRenderer->pDevice->Release(); }
+    void ClearView(RendererDX_t& renderer) {
+        renderer.pImmediateContext->ClearRenderTargetView(renderer.pRenderTargetView, clearColor);
+        renderer.pImmediateContext->ClearDepthStencilView(renderer.pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
     }
 
     void checkDirectX11_2(ID3D11Device* pDevice) {

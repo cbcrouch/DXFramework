@@ -8,7 +8,7 @@
 #include "SamplerDXF.h"
 
 namespace DXF {
-    HRESULT InitSampler(RendererDX_t* pRenderer, SamplerDX_t* pSampler) {
+    HRESULT InitSampler(SamplerDX_t& sampler, const RendererDX_t& renderer) {
         HRESULT hr = S_OK;
 
         // create the sampler state
@@ -26,11 +26,11 @@ namespace DXF {
 
         //sampDesc.MaxAnisotropy = 1;
 
-        hr = pRenderer->pDevice->CreateSamplerState(&sampDesc, &(pSampler->pSamplerState));
+        hr = renderer.pDevice->CreateSamplerState(&sampDesc, &(sampler.pSamplerState));
         return hr;
     }
 
-    void DestroySampler(SamplerDX_t* pSampler) {
-        if (pSampler->pSamplerState) { pSampler->pSamplerState->Release(); }
+    void DestroySampler(SamplerDX_t& sampler) {
+        if (sampler.pSamplerState) { sampler.pSamplerState->Release(); }
     }
 };

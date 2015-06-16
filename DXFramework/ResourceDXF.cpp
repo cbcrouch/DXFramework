@@ -9,7 +9,6 @@
 
 namespace DXF {
 
-    //HRESULT GenerateGridXZ(const RendererDX_t& renderer, const int32_t extent, CONST_PTR(EntityDX_t*) pEntity) {
     HRESULT GenerateGridXZ(const RendererDX_t& renderer, const int32_t extent, EntityDX_t* const pEntity) {
         pEntity->pMesh = (MeshDX_t *)malloc(sizeof(MeshDX_t));
         assert(pEntity->pMesh != nullptr);
@@ -128,15 +127,132 @@ namespace DXF {
         return S_OK;
     }
 
-    //void DestroyGridXZ(CONST_PTR(EntityDX_t*) pEntity) {
-    void DestroyGridXZ(EntityDX_t* const pEntity) {
+    HRESULT GenerateGridXZ(EntityDX_t& entity, const int32_t extent, const RendererDX_t& renderer) {
+        entity.pMesh = (MeshDX_t *)malloc(sizeof(MeshDX_t));
+        assert(entity.pMesh != nullptr);
 
-        if (pEntity->pTexture) { pEntity->pTexture->Release(); pEntity->pTexture = nullptr; }
+        int numVertices = (extent * 8) + 4;
+        entity.pMesh->numVertices = numVertices;
 
-        if (pEntity->pMesh->pIndices) { free(pEntity->pMesh->pIndices); pEntity->pMesh->pIndices = nullptr; }
-        if (pEntity->pMesh->pVertices) { free(pEntity->pMesh->pVertices); pEntity->pMesh->pVertices = nullptr; }
+        entity.pMesh->pVertices = (XMVertex_t *)malloc(numVertices * sizeof(XMVertex_t));
+        entity.pMesh->pIndices = (WORD *)malloc(numVertices * sizeof(WORD));
+        assert(entity.pMesh->pVertices != nullptr);
+        assert(entity.pMesh->pIndices != nullptr);
 
-        if (pEntity->pMesh) { free(pEntity->pMesh); pEntity->pMesh = nullptr; }
+        // set vertex data
+        int index = 0;
+        for (int i = -extent; i <= extent; ++i) {
+            entity.pMesh->pVertices[index].pos = XMFLOAT3((float)extent, 0.0f, (float)i);
+            entity.pMesh->pVertices[index + 1].pos = XMFLOAT3((float)-extent, 0.0f, (float)i);
+            index += 2;
+        }
+        for (int i = -extent; i <= extent; ++i) {
+            entity.pMesh->pVertices[index].pos = XMFLOAT3((float)i, 0.0f, (float)extent);
+            entity.pMesh->pVertices[index + 1].pos = XMFLOAT3((float)i, 0.0f, (float)-extent);
+            index += 2;
+        }
+
+        // set index data
+        for (int i = 0; i < numVertices; ++i) {
+            entity.pMesh->pIndices[i] = i;
+        }
+
+
+
+        D3D11_BUFFER_DESC bd = {};
+        D3D11_SUBRESOURCE_DATA initData = {};
+
+        // create vertex buffer
+        bd.Usage = D3D11_USAGE_DEFAULT;
+        bd.ByteWidth = sizeof(XMVertex_t) * numVertices;
+        bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        bd.CPUAccessFlags = 0;
+
+        initData = {};
+        initData.pSysMem = entity.pMesh->pVertices;
+        HRESULT hr = renderer.pDevice->CreateBuffer(&bd, &initData, &(entity.primitives.pVertexBuffer));
+        if (FAILED(hr)) {
+            return hr;
+        }
+
+
+
+        //
+        // TODO: do not need input assembly calls i.e. IASetVertexBuffers, IASetIndexBuffer, IASetPrimitiveTopology
+        //       for populating buffers, they will get called when rendering an entity
+        //
+
+        // set vertex buffer
+        //UINT stride = sizeof(XMVertex_t);
+        //UINT offset = 0;
+        //pRenderer->pImmediateContext->IASetVertexBuffers(0, 1, &(pEntity->primitives.pVertexBuffer), &stride, &offset);
+
+
+
+        // create index buffer
+        bd = {};
+        bd.Usage = D3D11_USAGE_DEFAULT;
+        bd.ByteWidth = sizeof(WORD) * numVertices;
+        bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        bd.CPUAccessFlags = 0;
+
+        initData = {};
+        initData.pSysMem = entity.pMesh->pIndices;
+
+        hr = renderer.pDevice->CreateBuffer(&bd, &initData, &(entity.primitives.pIndexBuffer));
+        if (FAILED(hr)) {
+            return hr;
+        }
+
+
+
+        // set index buffer
+        //pRenderer->pImmediateContext->IASetIndexBuffer(pEntity->primitives.pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+        // set primitive topology
+        //pRenderer->pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+
+
+
+        // create default texture
+        unsigned char defaultTex[] = {
+            255, 255, 255, 255, 128, 128, 128, 255,
+            128, 128, 128, 255, 255, 255, 255, 255
+        };
+
+        D3D11_TEXTURE2D_DESC desc = {};
+        desc.Width = 2;
+        desc.Height = 2;
+        desc.MipLevels = 1;
+        desc.ArraySize = 1;
+        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.SampleDesc.Count = 1;   // number of multisamples per pixel
+        desc.SampleDesc.Quality = 0; // multisample quality levels
+        desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        desc.CPUAccessFlags = 0;
+        desc.MiscFlags = 0;
+
+        // using D3D11_SUBRESOURCE_DATA to init the texture with in the create call
+        D3D11_SUBRESOURCE_DATA initialData = {};
+        initialData.pSysMem = defaultTex;
+        initialData.SysMemPitch = 8; // distance in bytes from beginning of one line of texture to the next
+        initialData.SysMemSlicePitch = 0; // distance in bytes from the beginning of one depth level to the next
+
+        hr = renderer.pDevice->CreateTexture2D(&desc, &initialData, &(entity.pTexture));
+        DXF_CHECK_HRESULT(hr);
+
+        return S_OK;
+    }
+
+    void DestroyGridXZ(EntityDX_t& entity) {
+
+        if (entity.pTexture) { entity.pTexture->Release(); entity.pTexture = nullptr; }
+
+        if (entity.pMesh->pIndices) { free(entity.pMesh->pIndices); entity.pMesh->pIndices = nullptr; }
+        if (entity.pMesh->pVertices) { free(entity.pMesh->pVertices); entity.pMesh->pVertices = nullptr; }
+
+        if (entity.pMesh) { free(entity.pMesh); entity.pMesh = nullptr; }
     }
 
 
@@ -179,8 +295,12 @@ namespace DXF {
 
 
 
-    void DestroySDKMesh(EntityDX_t* pEntity) {
-        if (pEntity->pMeshSDK) { delete(pEntity->pMeshSDK); }
+    //void DestroySDKMesh(EntityDX_t* pEntity) {
+    //    if (pEntity->pMeshSDK) { delete(pEntity->pMeshSDK); }
+    //}
+
+    void DestroySDKMesh(EntityDX_t& entity) {
+        if (entity.pMeshSDK) { delete(entity.pMeshSDK); }
     }
 
 
@@ -265,19 +385,19 @@ namespace DXF {
         return bounds;
     }
 
-    HRESULT InitPrimitives(MeshDX_t* const pMesh, RendererDX_t* const pRenderer, PrimitivesDX_t* const pPrimitives) {
+    HRESULT InitPrimitives(PrimitivesDX_t& primitives, const MeshDX_t& mesh, const RendererDX_t& renderer) {
         HRESULT hr;
         D3D11_BUFFER_DESC bd = {};
         D3D11_SUBRESOURCE_DATA initData = {};
 
         // create vertex buffer
         bd.Usage = D3D11_USAGE_DEFAULT;
-        bd.ByteWidth = sizeof(XMVertex_t) * pMesh->numVertices;
+        bd.ByteWidth = sizeof(XMVertex_t) * mesh.numVertices;
         bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         bd.CPUAccessFlags = 0;
 
-        initData.pSysMem = pMesh->pVertices;
-        hr = pRenderer->pDevice->CreateBuffer(&bd, &initData, &(pPrimitives->pVertexBuffer));
+        initData.pSysMem = mesh.pVertices;
+        hr = renderer.pDevice->CreateBuffer(&bd, &initData, &(primitives.pVertexBuffer));
         if (FAILED(hr)) {
             return hr;
         }
@@ -285,40 +405,42 @@ namespace DXF {
         // set vertex buffer
         UINT stride = sizeof(XMVertex_t);
         UINT offset = 0;
-        pRenderer->pImmediateContext->IASetVertexBuffers(0, 1, &(pPrimitives->pVertexBuffer), &stride, &offset);
+        renderer.pImmediateContext->IASetVertexBuffers(0, 1, &(primitives.pVertexBuffer), &stride, &offset);
 
         // create index buffer
         bd = {};
         bd.Usage = D3D11_USAGE_DEFAULT;
-        bd.ByteWidth = sizeof(WORD) * pMesh->numIndices;
+        bd.ByteWidth = sizeof(WORD) * mesh.numIndices;
         bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
         bd.CPUAccessFlags = 0;
 
         initData = {};
-        initData.pSysMem = pMesh->pIndices;
-        hr = pRenderer->pDevice->CreateBuffer(&bd, &initData, &(pPrimitives->pIndexBuffer));
+        initData.pSysMem = mesh.pIndices;
+        hr = renderer.pDevice->CreateBuffer(&bd, &initData, &(primitives.pIndexBuffer));
         if (FAILED(hr)) {
             return hr;
         }
 
         // set index buffer
-        pRenderer->pImmediateContext->IASetIndexBuffer(pPrimitives->pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+        renderer.pImmediateContext->IASetIndexBuffer(primitives.pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
         // set primitive topology
-        pRenderer->pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        renderer.pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         return S_OK;
     }
 
-    void DestroyPrimitives(PrimitivesDX_t* const pPrimitives) {
-        if (pPrimitives->pIndexBuffer) { pPrimitives->pIndexBuffer->Release(); }
-        if (pPrimitives->pVertexBuffer) { pPrimitives->pVertexBuffer->Release(); }
+    void DestroyPrimitives(PrimitivesDX_t& primitives) {
+        if (primitives.pIndexBuffer) { primitives.pIndexBuffer->Release(); }
+        if (primitives.pVertexBuffer) { primitives.pVertexBuffer->Release(); }
     }
 
-    // NOTE: normally init transform would check some saved data and init to the last saved
-    //       values or if they don't exist use some defaults or ini/CLI values
 
-    void InitViewVolume(const RendererDX_t& renderer, ViewVolume_t& viewVolume) {
+    //
+    // NOTE: normally init transform would check some saved data and init to the last saved
+    //       values or if they don't exist use some defaults or CLI values
+    //
+    void InitViewVolume(ViewVolume_t& viewVolume, const RendererDX_t& renderer) {
         // initialize world matrix
         //pviewVolume->world = XMMatrixIdentity();
 

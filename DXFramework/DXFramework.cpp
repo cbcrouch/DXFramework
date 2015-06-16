@@ -78,7 +78,7 @@ unsigned __stdcall renderThread(void *pArgs)
 
 
     DXF::ViewVolume_t viewVolume;
-    DXF::InitViewVolume(*pRenderer, viewVolume);
+    DXF::InitViewVolume(viewVolume, *pRenderer);
 
 
     // update constant resources that won't vary (or vary much) from frame to frame
@@ -108,11 +108,11 @@ unsigned __stdcall renderThread(void *pArgs)
     //float secondsElapsedPerFrame = 1000.0f / (float)simulationRateHz;
 
     DXF::OperationTimer_t timer;
-    DXF::InitOperationTimer(&timer);
+    DXF::InitOperationTimer(timer);
 
     while(running) {
 
-        DXF::Mark(&timer);
+        DXF::Mark(timer);
 
         //
         // TODO: break this basic time/step based logic out into a "simulation update" module within the framework
@@ -134,7 +134,7 @@ unsigned __stdcall renderThread(void *pArgs)
         XMMATRIX timedRotation = XMMatrixRotationY(t);
 
 
-        ClearView(pRenderer);
+        ClearView(*pRenderer);
 
 
         // update constant buffer that changes one per frame
@@ -220,7 +220,7 @@ unsigned __stdcall renderThread(void *pArgs)
         //
         // TODO: implement proper pacing algorithm, calculate sleep interval based on timer results
         //
-        DXF::OperationSpan_t timeSpan = DXF::Measure(&timer);
+        DXF::OperationSpan_t timeSpan = DXF::Measure(timer);
 
 /*
         int64_t msElapsed = timeSpan.msElapsed;
@@ -231,7 +231,7 @@ unsigned __stdcall renderThread(void *pArgs)
         }
 */
 
-        PresentView(pRenderer);
+        PresentView(*pRenderer);
         Sleep(0);
     }
 
@@ -300,23 +300,23 @@ int APIENTRY wWinMain (
 
 
     // init and create the Win32 window
-    hr = DXF::InitWindowW32(hInstance, TEXT("DirectX Framework"), windowSize, nullptr, &dxWin);
+    hr = DXF::InitWindowW32(dxWin, hInstance, nullptr, windowSize, TEXT("DirectX Framework"));
     DXF_CHECK_HRESULT(hr);
 
-    hr = DXF::CreateWindowW32(&dxWin);
+    hr = DXF::CreateWindowW32(dxWin);
     DXF_CHECK_HRESULT(hr);
 
     // create the Direct3D device
-    hr = InitRenderer(dxWin.handle, &dxRenderer);
+    hr = InitRenderer(dxRenderer, dxWin.handle);
     DXF_CHECK_HRESULT(hr);
 
-    hr = InitProgram(&dxRenderer, TEXT("Simple.fx"), &g_hlslProgram);
+    hr = InitProgram(g_hlslProgram, TEXT("Simple.fx"), dxRenderer);
     DXF_CHECK_HRESULT(hr);
 
-    hr = InitConstBuffers(&dxRenderer, &g_hlslConstants);
+    hr = InitConstBuffers(g_hlslConstants, dxRenderer);
     DXF_CHECK_HRESULT(hr);
 
-    hr = InitSampler(&dxRenderer, &g_hlslSampler);
+    hr = InitSampler(g_hlslSampler, dxRenderer);
     DXF_CHECK_HRESULT(hr);
 
 
@@ -328,7 +328,7 @@ int APIENTRY wWinMain (
     // TODO: update the Wavefront Obj file reading to use the platform calls
     //
 
-    DXF::DestroyFileMemory(&fm);
+    DXF::DestroyFileMemory(fm);
 
 
 
@@ -359,15 +359,15 @@ int APIENTRY wWinMain (
     //
     //
     DXF::EntityDX_t grid = {};
-    hr = DXF::GenerateGridXZ(dxRenderer, 20, &grid);
+    hr = DXF::GenerateGridXZ(grid, 20, dxRenderer);
     DXF_CHECK_HRESULT(hr);
 
-    DXF::DestroyGridXZ(&grid);
+    DXF::DestroyGridXZ(grid);
 
     //
     // TODO: update DestroyEntity call to clean up all entity resource
     //
-    //DXF::DestroyEntity(&grid);
+    //DXF::DestroyEntity(grid);
 
 
     //
@@ -391,7 +391,7 @@ int APIENTRY wWinMain (
         bounds.min_y, bounds.max_y, bounds.min_z, bounds.max_y);
     OutputDebugStringA(strBuffer);
 
-    DXF::DestroySDKMesh(&sdkmesh);
+    DXF::DestroySDKMesh(sdkmesh);
     //
     //
     //
@@ -492,11 +492,11 @@ int APIENTRY wWinMain (
     g_mesh11.Destroy();
 
 
-    DestroyProgram(&g_hlslProgram);
-    DestroyConstBuffers(&g_hlslConstants);
-    DestroySampler(&g_hlslSampler);
+    DestroyProgram(g_hlslProgram);
+    DestroyConstBuffers(g_hlslConstants);
+    DestroySampler(g_hlslSampler);
 
     // NOTE: window is destroyed when it receives a WM_CLOSE message
-    DXF::DestroyRenderer(&dxRenderer);
+    DXF::DestroyRenderer(dxRenderer);
     return 0;
 }

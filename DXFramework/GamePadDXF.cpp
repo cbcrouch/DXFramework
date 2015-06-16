@@ -10,11 +10,11 @@
 
 namespace DXF {
 
+    //
+    // TODO: if possible remove the create/destroy functions, allocation of memory should
+    //       be handled external to the module
+    //
     void createGamePads(GamePads_t** ppGamePads) {
-        //
-    }
-
-    void initGamePads(GamePads_t* pGamePads) {
         //
     }
 
@@ -22,14 +22,20 @@ namespace DXF {
         //
     }
 
-    void activatePolling(GamePads_t* pGamePads) {
+
+
+    void initGamePads(GamePads_t& gamePads) {
+        //
+    }
+
+    void activatePolling(GamePads_t& gamePads) {
         //
         // TODO: will launch a thread which will poll the controller state at a given rate
         //       and queue up events based on the controller state changes
         //
     }
 
-    void stopPolling(GamePads_t* pGamePads) {
+    void stopPolling(GamePads_t& gamePads) {
         //
     }
 

@@ -228,17 +228,8 @@ namespace DXF {
     };
 
 
-    //
-    // TODO: make all functions as const correct as possible and pass by reference whenever possible
-    //       (also first argument should be function output)
-    //
-    // e.g.
     HRESULT LoadSDKMesh(EntityDX_t& entity, LPCTSTR fileName, const RendererDX_t& renderer);
-
-
-
-
-    void DestroySDKMesh(EntityDX_t* pEntity);
+    void DestroySDKMesh(EntityDX_t& entity);
 
 
     MeshBounds_t CalcBoundingBox(const EntityDX_t& entity);
@@ -251,30 +242,28 @@ namespace DXF {
     //
     // TODO: utility functions for creating default vertex/index buffers
     //
-    //void CreateDefaultVertexBuffer(ID3D11Buffer**, numVertices, stride, offset, pData);
-    //void CreateDefaultIndexBuffer(ID3D11Buffer**, numIndices, format, pData);
+    //void CreateDefaultVertexBuffer(ID3D11Buffer** ppVertexBuffer, const uint32_t numVertices, const uint32_t stride, const uint32_t offset, void* pData);
+    //void CreateDefaultIndexBuffer(ID3D11Buffer** ppIndexBuffer, const uint32_t numIndices, const uint32_t format, void* pData);
 
 
-    HRESULT InitPrimitives(MeshDX_t* const pMesh, RendererDX_t* const pRenderer, PrimitivesDX_t* const pPrimitives);
-    void DestroyPrimitives(PrimitivesDX_t* const pPrimitives);
 
+    HRESULT InitPrimitives(PrimitivesDX_t& primitives, const MeshDX_t& mesh, const RendererDX_t& renderer);
+    void DestroyPrimitives(PrimitivesDX_t& primitives);
 
     //
     // TODO: also create a color coded guide line for x, y, z axis in a GenerateAxisGuide function
-    //
-    
-    //HRESULT GenerateGridXZ(const RendererDX_t& renderer, const int32_t extent, CONST_PTR(EntityDX_t*) pEntity);
-    HRESULT GenerateGridXZ(const RendererDX_t& renderer, const int32_t extent, EntityDX_t* const pEntity);
+    //    
+
+    HRESULT GenerateGridXZ(EntityDX_t& entity, const int32_t extent, const RendererDX_t& renderer);
+    void DestroyGridXZ(EntityDX_t& entity);
 
     //
     // TODO: should have a generic destroy entity function
     //
-    //void DestroyGridXZ(CONST_PTR(EntityDX_t*) pEntity);
-    void DestroyGridXZ(EntityDX_t* const pEntity);
 
     //
     // TODO: function for drawing a primitives skeletal animation rig
     //
 
-    void InitViewVolume(const RendererDX_t& renderer, ViewVolume_t& viewVolume);
+    void InitViewVolume(ViewVolume_t& viewVolume, const RendererDX_t& renderer);
 };

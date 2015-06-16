@@ -71,9 +71,9 @@ namespace DXF {
     };
 
 
-    HRESULT InitRenderer(const HWND hwnd, RendererDX_t* pRenderer);
-    void DestroyRenderer(RendererDX_t* pRenderer);
+    HRESULT InitRenderer(RendererDX_t& renderer, const HWND hwnd);
+    void DestroyRenderer(RendererDX_t& renderer);
 
-    void PresentView(RendererDX_t* pRenderer);
-    void ClearView(RendererDX_t* pRenderer);
+    void PresentView(RendererDX_t& renderer);
+    void ClearView(RendererDX_t& renderer);
 };

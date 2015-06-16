@@ -142,50 +142,49 @@ namespace DXF {
         return fm;
     }
 
-    void DestroyFileMemory(FileMemory_t* pFileMemory) {
+    void DestroyFileMemory(FileMemory_t& fileMemory) {
         //
         // TODO: this pattern would also make a useful macro e.g. DXF_FREE() and for COM objects DXF_RELEASE()
         //
-        if (pFileMemory->data) {
-            free(pFileMemory->data);
+        if (fileMemory.data) {
+            free(fileMemory.data);
+            fileMemory.data = nullptr;
         }
-
-        memset(&(pFileMemory->fileSize), 0, sizeof(LARGE_INTEGER));
-        pFileMemory->data = nullptr;
+        memset(&(fileMemory.fileSize), 0, sizeof(LARGE_INTEGER));
     }
 
-    void InitOperationTimer(OperationTimer_t *pTimer) {
+    void InitOperationTimer(OperationTimer_t& timer) {
         //
         // NOTE: perf counter frequency is set at boot time and does not change
         //       (at least according to the documentation)
         //
 
         // ticks per second (note that this is NOT CPU clock cycles)
-        if (!QueryPerformanceFrequency(&(pTimer->frequency))) {
+        if (!QueryPerformanceFrequency(&(timer.frequency))) {
             DXF_ERROR_BOX();
         }
 
-        ResetOperationTimer(pTimer);
+        ResetOperationTimer(timer);
     }
 
-    void ResetOperationTimer(OperationTimer_t* pTimer) {
-        pTimer->cycleCountStart = __rdtsc();
-        if (!QueryPerformanceCounter(&(pTimer->perfCounterStart))) {
+    void ResetOperationTimer(OperationTimer_t& timer) {
+        timer.cycleCountStart = __rdtsc();
+        if (!QueryPerformanceCounter(&(timer.perfCounterStart))) {
             DXF_ERROR_BOX();
         }
 
-        pTimer->lastCycleCount = pTimer->cycleCountStart;
-        pTimer->lastPerfCounter.QuadPart = pTimer->perfCounterStart.QuadPart;
+        timer.lastCycleCount = timer.cycleCountStart;
+        timer.lastPerfCounter.QuadPart = timer.perfCounterStart.QuadPart;
     }
 
-    void Mark(OperationTimer_t* pTimer) {
-        pTimer->lastCycleCount = __rdtsc();
-        if (!QueryPerformanceCounter(&(pTimer->lastPerfCounter))) {
+    void Mark(OperationTimer_t& timer) {
+        timer.lastCycleCount = __rdtsc();
+        if (!QueryPerformanceCounter(&(timer.lastPerfCounter))) {
             DXF_ERROR_BOX();
         }
     }
 
-    OperationSpan_t Measure(OperationTimer_t* pTimer) {
+    OperationSpan_t Measure(OperationTimer_t& timer) {
         OperationSpan_t result;
 
         //
@@ -202,12 +201,12 @@ namespace DXF {
         // TODO: need to verify calculations
         //
 
-        uint64_t cyclesElapsed = endCycleCount - pTimer->lastCycleCount;
+        uint64_t cyclesElapsed = endCycleCount - timer.lastCycleCount;
         result.megaCyclesElapsed = cyclesElapsed / (1000 * 1000);
 
         LARGE_INTEGER delta;
-        delta.QuadPart = endPerfCount.QuadPart - pTimer->lastPerfCounter.QuadPart;
-        result.msElapsed = 1000 * delta.QuadPart / pTimer->frequency.QuadPart;
+        delta.QuadPart = endPerfCount.QuadPart - timer.lastPerfCounter.QuadPart;
+        result.msElapsed = 1000 * delta.QuadPart / timer.frequency.QuadPart;
 
         return result;
     }

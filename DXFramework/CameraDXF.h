@@ -62,18 +62,18 @@ namespace DXF {
     class Camera {
     public:
         enum class TranslationState : uint32_t {
-            FOWARD = 0x01u,
+            FOWARD   = 0x01u,
             BACKWARD = 0x01u << 1,
-            RIGHT = 0x01u << 2,
-            LEFT = 0x01u << 3,
-            UP = 0x01u << 4,
-            DOWN = 0x01u << 5
+            RIGHT    = 0x01u << 2,
+            LEFT     = 0x01u << 3,
+            UP       = 0x01u << 4,
+            DOWN     = 0x01u << 5
         };
 
         enum class RotationState : uint32_t {
-            ROLL = 0x01u,
+            ROLL  = 0x01u,
             PITCH = 0x01u << 1,
-            YAW = 0x01u << 2
+            YAW   = 0x01u << 2
         };
 
         Camera();

@@ -20,26 +20,16 @@
 // Target Output As Content: Yes
 
 
-
-
-// NOTE: using the follow defines to give some context to the aligned byte offsets used in the shader
-//static_assert(sizeof(float) == 4, "assert failed, sizeof(float) != 4 bytes");
-
-//
-// TODO: use static assert
-//
-
-C_ASSERT(sizeof(float) == 4);
-
 #define XMFLOAT2_SIZE 8
 #define XMFLOAT3_SIZE 12
 #define XMFLOAT4_SIZE 16
 
 
-
 namespace DXF {
 
-    HRESULT InitProgram(RendererDX_t* pRenderer, LPCTSTR szProgramName, ProgramDX_t* pProgram) {
+    HRESULT CompileShaderFromFile(LPCTSTR szFilename, LPCTSTR szEntryPoint, LPCTSTR szShaderModel, ID3DBlob** ppBlobOut);
+
+    HRESULT InitProgram(ProgramDX_t& program, LPCTSTR szProgramName, const RendererDX_t& renderer) {
         HRESULT hr;
 
         // compile the vertex shader
@@ -49,26 +39,37 @@ namespace DXF {
             return hr;
         }
 
+
+        //
+        // TODO: support reading precompiled shader binaries
+        //
+        //D3DReadFileToBlob(TEXT("VS"), &pVSBlob);
+
+
         // create the vertex shader
-        hr = pRenderer->pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(),
-            nullptr, &(pProgram->pVertexShader));
+        hr = renderer.pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(),
+            nullptr, &(program.pVertexShader));
         if (FAILED(hr)) {
             // NOTE: not using CHECK_HRESULT macor here since need to perform some custom error handling
             pVSBlob->Release();
             return hr;
         }
 
+        const uint32_t pos_offset = 0;
+        const uint32_t norm_offset = XMFLOAT3_SIZE;
+        const uint32_t tex_offset = XMFLOAT3_SIZE + norm_offset;
+
         // setup the input layout
         const D3D11_INPUT_ELEMENT_DESC layout[] = {
-                { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-                { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-                { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+                { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, pos_offset, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+                { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, norm_offset, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+                { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, tex_offset, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
 
         // create the input layout
         UINT numElements = ARRAYSIZE(layout);
-        hr = pRenderer->pDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
-            pVSBlob->GetBufferSize(), &(pProgram->pInputLayout));
+        hr = renderer.pDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
+            pVSBlob->GetBufferSize(), &(program.pInputLayout));
         pVSBlob->Release();
         if (FAILED(hr)) {
             return hr;
@@ -82,7 +83,7 @@ namespace DXF {
         //       OM -> output-merger (stage)
 
         // set the input layout
-        pRenderer->pImmediateContext->IASetInputLayout(pProgram->pInputLayout);
+        renderer.pImmediateContext->IASetInputLayout(program.pInputLayout);
 
 
         // compile the pixel shader
@@ -93,8 +94,8 @@ namespace DXF {
         }
 
         // create the pixel shader
-        hr = pRenderer->pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(),
-            nullptr, &(pProgram->pPixelShader));
+        hr = renderer.pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(),
+            nullptr, &(program.pPixelShader));
         pPSBlob->Release();
         if (FAILED(hr)) {
             return hr;
@@ -103,15 +104,15 @@ namespace DXF {
         return S_OK;
     }
 
-    void DestroyProgram(ProgramDX_t* pProgram) {
-        if (pProgram->pInputLayout) { pProgram->pInputLayout->Release(); }
-        if (pProgram->pVertexShader) { pProgram->pVertexShader->Release(); }
-        if (pProgram->pPixelShader) { pProgram->pPixelShader->Release(); }
+    void DestroyProgram(ProgramDX_t& program) {
+        if (program.pInputLayout) { program.pInputLayout->Release(); }
+        if (program.pVertexShader) { program.pVertexShader->Release(); }
+        if (program.pPixelShader) { program.pPixelShader->Release(); }
 
-        if (pProgram->pBlinnPhong) { pProgram->pBlinnPhong->Release(); }
+        if (program.pBlinnPhong) { program.pBlinnPhong->Release(); }
     }
 
-    HRESULT InitConstBuffers(RendererDX_t* pRenderer, ConstantsDX_t* pConstants) {
+    HRESULT InitConstBuffers(ConstantsDX_t& constants, RendererDX_t& renderer) {
         HRESULT hr;
         D3D11_BUFFER_DESC bd = {};
 
@@ -120,19 +121,19 @@ namespace DXF {
         bd.ByteWidth = sizeof(CBNeverChanges_t);
         bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
         bd.CPUAccessFlags = 0;
-        hr = pRenderer->pDevice->CreateBuffer(&bd, nullptr, &(pConstants->pNeverChanges));
+        hr = renderer.pDevice->CreateBuffer(&bd, nullptr, &(constants.pNeverChanges));
         if (FAILED(hr)) {
             return hr;
         }
 
         bd.ByteWidth = sizeof(CBChangeOnResize_t);
-        hr = pRenderer->pDevice->CreateBuffer(&bd, nullptr, &(pConstants->pChangeOnResize));
+        hr = renderer.pDevice->CreateBuffer(&bd, nullptr, &(constants.pChangeOnResize));
         if (FAILED(hr)) {
             return hr;
         }
 
         bd.ByteWidth = sizeof(CBChangesEveryFrame_t);
-        hr = pRenderer->pDevice->CreateBuffer(&bd, nullptr, &(pConstants->pChangesEveryFrame));
+        hr = renderer.pDevice->CreateBuffer(&bd, nullptr, &(constants.pChangesEveryFrame));
         if (FAILED(hr)) {
             return hr;
         }
@@ -141,7 +142,7 @@ namespace DXF {
         // TODO: need to re-think how lights should be stored
         //
         bd.ByteWidth = sizeof(CBLightBuffer_t);
-        hr = pRenderer->pDevice->CreateBuffer(&bd, nullptr, &(pConstants->pLightBuffer));
+        hr = renderer.pDevice->CreateBuffer(&bd, nullptr, &(constants.pLightBuffer));
         if (FAILED(hr)) {
             return hr;
         }
@@ -149,12 +150,12 @@ namespace DXF {
         return S_OK;
     }
 
-    void DestroyConstBuffers(ConstantsDX_t* pConstants) {
-        if (pConstants->pChangeOnResize) { pConstants->pChangeOnResize->Release(); }
-        if (pConstants->pChangesEveryFrame) { pConstants->pChangesEveryFrame->Release(); }
-        if (pConstants->pNeverChanges) { pConstants->pNeverChanges->Release(); }
+    void DestroyConstBuffers(ConstantsDX_t& constants) {
+        if (constants.pChangeOnResize) { constants.pChangeOnResize->Release(); }
+        if (constants.pChangesEveryFrame) { constants.pChangesEveryFrame->Release(); }
+        if (constants.pNeverChanges) { constants.pNeverChanges->Release(); }
 
-        if (pConstants->pLightBuffer) { pConstants->pLightBuffer->Release(); }
+        if (constants.pLightBuffer) { constants.pLightBuffer->Release(); }
     }
 
     //

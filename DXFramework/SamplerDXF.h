@@ -21,6 +21,6 @@ namespace DXF {
         ID3D11SamplerState*        pSamplerState;
     };
 
-    HRESULT InitSampler(RendererDX_t* pRenderer, SamplerDX_t* pSampler);
-    void DestroySampler(SamplerDX_t* pSampler);
+    HRESULT InitSampler(SamplerDX_t& sampler, const RendererDX_t& renderer);
+    void DestroySampler(SamplerDX_t& sampler);
 };

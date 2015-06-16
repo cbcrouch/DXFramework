@@ -28,10 +28,16 @@ namespace DXF {
         BOOL activeControllers[XUSER_MAX_COUNT];
     };
 
+
+    //
+    // TODO: if possible remove the create/destroy functions, allocation of memory should
+    //       be handled external to the module
+    //
     void createGamePads(GamePads_t** ppGamePads);
-    void initGamePads(GamePads_t* pGamePads);
     void destroyGamePads(GamePads_t** ppGamePads);
 
-    void activatePolling(GamePads_t* pGamePads);
-    void stopPolling(GamePads_t* pGamePads);
+
+    void initGamePads(GamePads_t& gamePads);
+    void activatePolling(GamePads_t& gamePads);
+    void stopPolling(GamePads_t& gamePads);
 };

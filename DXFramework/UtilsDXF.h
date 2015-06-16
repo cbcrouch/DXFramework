@@ -56,7 +56,7 @@ namespace DXF {
     };
 
     FileMemory_t ReadFileIntoMemory(LPCTSTR fileName);
-    void DestroyFileMemory(FileMemory_t* pFileMemory);
+    void DestroyFileMemory(FileMemory_t& fileMemory);
 
     struct OperationTimer_t {
         LARGE_INTEGER frequency;
@@ -71,14 +71,14 @@ namespace DXF {
         int64_t megaCyclesElapsed;
     };
 
-    void InitOperationTimer(OperationTimer_t* pTimer);  // gets the frequency and then sets start values
-    void ResetOperationTimer(OperationTimer_t* pTimer); // will set the start values to current time
+    void InitOperationTimer(OperationTimer_t& timer);  // gets the frequency and then sets start values
+    void ResetOperationTimer(OperationTimer_t& timer); // will set the start values to current time
 
     // starting point which to base measurements off of
-    void Mark(OperationTimer_t* pTimer);
+    void Mark(OperationTimer_t& timer);
 
     // calculate and return an OperationSpan_t (won't modify the last values in the timer)
-    OperationSpan_t Measure(OperationTimer_t* pTimer);
+    OperationSpan_t Measure(OperationTimer_t& timer);
 
     //
     // TODO: add another timer based utility that is a circular buffer of

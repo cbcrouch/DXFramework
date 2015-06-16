@@ -70,15 +70,13 @@ namespace DXF {
     };
 
 
-    HRESULT InitProgram(RendererDX_t* pRenderer, LPCTSTR szProgramName, ProgramDX_t* pProgram);
-    void DestroyProgram(ProgramDX_t* pProgram);
-
-    HRESULT InitConstBuffers(RendererDX_t* pRenderer, ConstantsDX_t* pConstants);
-    void DestroyConstBuffers(ConstantsDX_t* pConstants);
-
-    HRESULT CompileShaderFromFile(LPCTSTR szFilename, LPCTSTR szEntryPoint, LPCTSTR szShaderModel, ID3DBlob** ppBlobOut);
-
     //
-    // TODO: implement load shader from file to load precompiled blobs
+    // TODO: init should have the ability to determine if a shader source or binary file is being loaded
+    //       (may just add an enum)
     //
+    HRESULT InitProgram(ProgramDX_t& program, LPCTSTR szProgramName, const RendererDX_t& renderer);
+    void DestroyProgram(ProgramDX_t& program);
+
+    HRESULT InitConstBuffers(ConstantsDX_t& constants, RendererDX_t& renderer);
+    void DestroyConstBuffers(ConstantsDX_t& constants);
 };

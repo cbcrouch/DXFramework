@@ -30,7 +30,10 @@ namespace DXF {
 
         UINT CreateRendererFlags = 0;
 #ifdef _DEBUG
-        CreateRendererFlags |= D3D11_CREATE_DEVICE_DEBUG;
+        //
+        // TODO: fix failure to create debug warp device on Windows 10 with Visual Studio 2015
+        //
+        //CreateRendererFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
         // NOTE: only use ref driver for debugging/testing correctness of Direct3D

@@ -15,7 +15,7 @@ Beware of hardcoded paths.
 Dependencies
 ----------------
 
-Visual Studio 2013
+Visual Studio 2015
 DirectX 11 compatiable GPU and OS
 
 Assets

@@ -12,6 +12,9 @@ only occasionally be updated with various notable snapshots.
 
 Beware of hardcoded paths.
 
+2016 UPDATE: I'm currently enrolled in an ECE masters program, hobby project updates will now be few and far
+between. Expect minor activity during breaks from school at best.
+
 Dependencies
 ----------------
 

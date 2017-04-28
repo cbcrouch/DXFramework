@@ -82,11 +82,11 @@ unsigned __stdcall renderThread(void *pArgs)
 
 
     // update constant resources that won't vary (or vary much) from frame to frame
-    DXF::CBNeverChanges_t cbNeverChanges;
+	DXF::CBNeverChanges_t cbNeverChanges = {};
     cbNeverChanges.view = XMMatrixTranspose(viewVolume.view);
     pRenderer->pImmediateContext->UpdateSubresource(g_hlslConstants.pNeverChanges, 0, nullptr, &cbNeverChanges, 0, 0);
 
-    DXF::CBChangeOnResize_t cbChangeOnResize;
+	DXF::CBChangeOnResize_t cbChangeOnResize = {};
     cbChangeOnResize.projection = XMMatrixTranspose(viewVolume.projection);
     pRenderer->pImmediateContext->UpdateSubresource(g_hlslConstants.pChangeOnResize, 0, nullptr, &cbChangeOnResize, 0, 0);
 
@@ -138,7 +138,7 @@ unsigned __stdcall renderThread(void *pArgs)
 
 
         // update constant buffer that changes one per frame
-        DXF::CBChangesEveryFrame_t cb;
+		DXF::CBChangesEveryFrame_t cb = {};
 
         // rename constant buffers to be similar to what's in the example
         // - CB_VS_PER_OBJECT

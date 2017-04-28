@@ -2,7 +2,7 @@
 // File:     DXFCommon.h
 // Project:  DXFramework
 //
-// Copyright (c) 2016 Casey Crouch. All rights reserved.
+// Copyright (c) 2017 Casey Crouch. All rights reserved.
 //
 
 

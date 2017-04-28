@@ -18,7 +18,8 @@ between. Expect minor activity during breaks from school at best.
 Dependencies
 ----------------
 
-Visual Studio 2015
+Visual Studio 2017
+Windows 10 SDK
 DirectX 11 compatiable GPU and OS
 
 Assets
@@ -33,7 +34,7 @@ SDKmesh files can easily be found on the web, typically in most DirectX samples.
 License
 ---------------------------
 
-Copyright 2016 Casey Crouch. All rights reserved.
+Copyright 2017 Casey Crouch. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
